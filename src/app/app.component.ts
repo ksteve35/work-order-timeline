@@ -1,7 +1,8 @@
-import { Component } from '@angular/core'
+import { Component, OnInit } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { WORK_CENTERS } from './data/sample-data'
 import { WorkCenterDocument } from './models/documents.model'
+import { SampleDataService } from './services/sample-data.service'
 
 @Component({
   selector: 'app-root',
@@ -10,16 +11,20 @@ import { WorkCenterDocument } from './models/documents.model'
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
-  workCenters: WorkCenterDocument[] = WORK_CENTERS
+export class AppComponent implements OnInit {
+  workCenters: WorkCenterDocument[] = []
 
-  headerDays: string[] = this.generateStaticDays()
+  constructor(private sampleData: SampleDataService) {}
 
-  private generateStaticDays(): string[] {
-    const days: string[] = []
-    for (let i = 1; i <= 31; i++) {
-      days.push(`Jan ${i}`)
-    }
-    return days
+  ngOnInit(): void {
+    this.workCenters = this.sampleData.getWorkCenters()
   }
+
+  // private generateStaticDays(): string[] {
+  //   const days: string[] = []
+  //   for (let i = 1; i <= 31; i++) {
+  //     days.push(`Jan ${i}`)
+  //   }
+  //   return days
+  // }
 }

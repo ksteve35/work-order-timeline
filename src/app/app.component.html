@@ -1,9 +1,6 @@
 <div class="timeline-container">
   <div class="timeline-header">
-    <div class="header-left">
-      <h2>Work Orders</h2>
-    </div>
-
+    <div>Work Orders</div>
     <div class="header-right">
       <label>Timescale: </label>
       <select>
@@ -15,37 +12,44 @@
   </div>
 
   <div class="timeline-body">
+    <!-- Left panel: Work Centers -->
     <div class="work-center-column">
-      <div class="work-center-header">
+      <div
+        class="work-center-header"
+      >
         Work Center
       </div>
-
       <div
         class="work-center-row"
-        *ngFor="let center of workCenters"
+        *ngFor="let wc of workCenters"
       >
-        {{ center.data.name }}
+        {{ wc.data.name }}
       </div>
     </div>
 
+    <!-- Right panel: Timeline grid -->
     <div class="timeline-grid">
+      <!-- Header row -->
       <div class="timeline-header-row">
         <div
           class="timeline-cell"
-          *ngFor="let day of headerDays"
+          *ngFor="let day of [].constructor(31); let i = index"
         >
-          {{ day }}
+          {{ 14 + i }}
         </div>
       </div>
 
+      <!-- Timeline rows, one per work center -->
       <div
         class="timeline-row"
-        *ngFor="let center of workCenters"
+        *ngFor="let wc of workCenters"
       >
         <div
           class="timeline-cell"
-          *ngFor="let day of headerDays"
-        ></div>
+          *ngFor="let day of [].constructor(31); let i = index"
+        >
+          <!-- Placeholder for future work order bars -->
+        </div>
       </div>
     </div>
   </div>
