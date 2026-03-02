@@ -6,10 +6,11 @@
 }
 
 .timeline-header {
+  position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
+  flex-direction: column;
+  gap: 26px;
+  left: 101px;
   border-bottom: 1px solid #e5e5e5;
 }
 
@@ -131,4 +132,36 @@
   position: absolute;
   left: 101px;
   top: 20px;
+}
+
+.timescale-selector {
+  display: flex;
+  flex-direction: row;
+  width: 146px;
+  height: 25px;
+  box-shadow: 1px 2.5px 3px -1.5px rgba(200, 207, 233, 1);
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 1);
+}
+
+.timescale-selector-left {
+  width: 75px;
+  height: 25px;
+  border-radius: 5px 0 0 5px;
+  background-color: rgba(241, 243, 248, 0.75);
+}
+
+.timescale-selector-right {
+  width: 71px;
+  height: 25px;
+  border-radius: 0 5px 5px 0;
+}
+
+.page-title {
+  width: 142px;
+  height: 34px;
+  color: rgba(3, 9, 41, 1);
+  font-size: 24px;
+  font-weight: 600;
+  font-family: "Circular-Std", sans-serif;
 }
