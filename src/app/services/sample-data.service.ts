@@ -107,6 +107,50 @@ export class SampleDataService {
         startDate: '2026-01-22',
         endDate: '2026-01-28'
       }
+    },
+    {
+      docId: 'wo9',
+      docType: 'workOrder',
+      data: {
+        name: 'Order I',
+        workCenterId: 'wc3',
+        status: 'open' as WorkOrderStatus,
+        startDate: '2026-01-24',
+        endDate: '2026-01-27'
+      }
+    },
+    {
+      docId: 'wo10',
+      docType: 'workOrder',
+      data: {
+        name: 'Order J',
+        workCenterId: 'wc4',
+        status: 'in-progress' as WorkOrderStatus,
+        startDate: '2026-01-23',
+        endDate: '2026-01-30'
+      }
+    },
+    {
+      docId: 'wo11',
+      docType: 'workOrder',
+      data: {
+        name: 'Order K',
+        workCenterId: 'wc5',
+        status: 'complete' as WorkOrderStatus,
+        startDate: '2026-01-25',
+        endDate: '2026-01-31'
+      }
+    },
+    {
+      docId: 'wo12',
+      docType: 'workOrder',
+      data: {
+        name: 'Order L',
+        workCenterId: 'wc1',
+        status: 'blocked' as WorkOrderStatus,
+        startDate: '2026-01-26',
+        endDate: '2026-01-31'
+      }
     }
   ]
 
