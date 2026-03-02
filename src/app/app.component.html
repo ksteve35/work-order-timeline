@@ -14,9 +14,7 @@
   <div class="timeline-body">
     <!-- Left panel: Work Centers -->
     <div class="work-center-column">
-      <div
-        class="work-center-header"
-      >
+      <div class="work-center-header">
         Work Center
       </div>
       <div
@@ -43,12 +41,23 @@
       <div
         class="timeline-row"
         *ngFor="let wc of workCenters"
+        style="position: relative"
       >
+        <!-- Timeline cells -->
         <div
           class="timeline-cell"
-          *ngFor="let day of [].constructor(31); let i = index"
+          *ngFor="let day of [].constructor(31)"
+        ></div>
+
+        <!-- Work order bars -->
+        <div
+          *ngFor="let order of getOrdersForWorkCenter(wc.docId)"
+          class="work-order-bar"
+          [style.left.px]="getBarStyle(order.data.startDate, order.data.endDate).left"
+          [style.width.px]="getBarStyle(order.data.startDate, order.data.endDate).width"
+          [style.background-color]="getStatusColor(order.data.status)"
         >
-          <!-- Placeholder for future work order bars -->
+          {{ order.data.name }}
         </div>
       </div>
     </div>
