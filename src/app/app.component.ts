@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { SampleDataService } from './services/sample-data.service'
 import { WorkCenterDocument, WorkOrderDocument } from './models/documents.model'
@@ -9,7 +9,11 @@ import { WorkCenterDocument, WorkOrderDocument } from './models/documents.model'
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
+  @ViewChild('timelineCell') timelineCell!: ElementRef<HTMLDivElement>
+  columnWidth: number = 120
+  timelineStart = new Date('2026-03-14')
+  timelineEnd = new Date('2026-03-31')
   workCenters: WorkCenterDocument[] = []
   workOrders: WorkOrderDocument[] = []
 
@@ -20,41 +24,54 @@ export class AppComponent implements OnInit {
     this.workOrders = this.sampleData.getWorkOrders()
   }
 
-  // Returns work orders for a specific work center
+  ngAfterViewInit(): void {
+    this.columnWidth = this.timelineCell.nativeElement.getBoundingClientRect().width
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    if (this.timelineCell) {
+      this.columnWidth =
+        this.timelineCell.nativeElement.getBoundingClientRect().width
+    }
+  }
+
   getOrdersForWorkCenter(wcId: string): WorkOrderDocument[] {
     return this.workOrders.filter(order => order.data.workCenterId === wcId)
   }
 
-  // Calculate bar left and width in pixels based on start/end date
-  // For now, assume each day = 120px (matches timeline-cell width)
-  getBarStyle(startDate: string, endDate: string) {
-    const start = new Date(startDate)
-    const end = new Date(endDate)
+  getTimelineDays(): number[] {
+    const days: number[] = []
+    let d = new Date(this.timelineStart)
+    while (d <= this.timelineEnd) {
+      days.push(d.getDate())
+      d.setDate(d.getDate() + 1)
+    }
+    return days
+  }
 
-    const daysSpan = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  getDayIndex(dateStr: string): number {
+    const d = new Date(dateStr)
+    return Math.floor((d.getTime() - this.timelineStart.getTime()) / (1000 * 60 * 60 * 24))
+  }
 
-    const columnWidth = 120
-    const cellPadding = 16
-    const borderWidth = 1
-
-    const timelineStart = new Date('2026-01-14') // <-- match your sample data
-    const diffDays = Math.floor((start.getTime() - timelineStart.getTime()) / (1000 * 60 * 60 * 24))
-
-    const left = diffDays * columnWidth
-    const width = daysSpan * columnWidth - cellPadding - borderWidth
-
+  getBarStyle(orderStart: string, orderEnd: string) {
+    const startIdx = this.getDayIndex(orderStart)
+    const endIdx = this.getDayIndex(orderEnd)
+    //const columnWidth = 120
+    const totalColumns = endIdx - startIdx + 1
+    const left = startIdx * this.columnWidth
+    const width = totalColumns * this.columnWidth - 1
     return { left, width }
   }
 
-  // Map status to background color
-  // Placeholder colors for now
   getStatusColor(status: string): string {
     switch (status) {
-      case 'open': return '#007bff'        // Blue
-      case 'in-progress': return '#6f42c1' // Purple
-      case 'complete': return '#28a745'    // Green
-      case 'blocked': return '#ffc107'     // Yellow
-      default: return '#6c757d'            // Gray fallback
+      case 'open': return '#007bff'
+      case 'in-progress': return '#6f42c1'
+      case 'complete': return '#28a745'
+      case 'blocked': return '#ffc107'
+      default: return '#6c757d'
     }
   }
 }

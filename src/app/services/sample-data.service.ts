@@ -27,8 +27,8 @@ export class SampleDataService {
         name: 'Order A',
         workCenterId: 'wc1',
         status: 'open' as WorkOrderStatus,
-        startDate: '2026-01-14',
-        endDate: '2026-01-17'
+        startDate: '2026-03-14',
+        endDate: '2026-03-17'
       }
     },
     {
@@ -38,8 +38,8 @@ export class SampleDataService {
         name: 'Order B',
         workCenterId: 'wc2',
         status: 'in-progress' as WorkOrderStatus,
-        startDate: '2026-01-15',
-        endDate: '2026-01-20'
+        startDate: '2026-03-15',
+        endDate: '2026-03-20'
       }
     },
     {
@@ -49,8 +49,8 @@ export class SampleDataService {
         name: 'Order C',
         workCenterId: 'wc3',
         status: 'complete' as WorkOrderStatus,
-        startDate: '2026-01-14',
-        endDate: '2026-01-16'
+        startDate: '2026-03-14',
+        endDate: '2026-03-16'
       }
     },
     {
@@ -60,8 +60,8 @@ export class SampleDataService {
         name: 'Order D',
         workCenterId: 'wc3',
         status: 'blocked' as WorkOrderStatus,
-        startDate: '2026-01-18',
-        endDate: '2026-01-22'
+        startDate: '2026-03-18',
+        endDate: '2026-03-22'
       }
     },
     {
@@ -71,8 +71,8 @@ export class SampleDataService {
         name: 'Order E',
         workCenterId: 'wc4',
         status: 'open' as WorkOrderStatus,
-        startDate: '2026-01-16',
-        endDate: '2026-01-19'
+        startDate: '2026-03-16',
+        endDate: '2026-03-19'
       }
     },
     {
@@ -82,8 +82,8 @@ export class SampleDataService {
         name: 'Order F',
         workCenterId: 'wc5',
         status: 'in-progress' as WorkOrderStatus,
-        startDate: '2026-01-14',
-        endDate: '2026-01-21'
+        startDate: '2026-03-14',
+        endDate: '2026-03-21'
       }
     },
     {
@@ -93,8 +93,8 @@ export class SampleDataService {
         name: 'Order G',
         workCenterId: 'wc1',
         status: 'complete' as WorkOrderStatus,
-        startDate: '2026-01-20',
-        endDate: '2026-01-25'
+        startDate: '2026-03-20',
+        endDate: '2026-03-25'
       }
     },
     {
@@ -104,8 +104,8 @@ export class SampleDataService {
         name: 'Order H',
         workCenterId: 'wc2',
         status: 'blocked' as WorkOrderStatus,
-        startDate: '2026-01-22',
-        endDate: '2026-01-28'
+        startDate: '2026-03-22',
+        endDate: '2026-03-28'
       }
     },
     {
@@ -115,8 +115,8 @@ export class SampleDataService {
         name: 'Order I',
         workCenterId: 'wc3',
         status: 'open' as WorkOrderStatus,
-        startDate: '2026-01-24',
-        endDate: '2026-01-27'
+        startDate: '2026-03-24',
+        endDate: '2026-03-27'
       }
     },
     {
@@ -126,8 +126,8 @@ export class SampleDataService {
         name: 'Order J',
         workCenterId: 'wc4',
         status: 'in-progress' as WorkOrderStatus,
-        startDate: '2026-01-23',
-        endDate: '2026-01-30'
+        startDate: '2026-03-23',
+        endDate: '2026-03-30'
       }
     },
     {
@@ -137,8 +137,8 @@ export class SampleDataService {
         name: 'Order K',
         workCenterId: 'wc5',
         status: 'complete' as WorkOrderStatus,
-        startDate: '2026-01-25',
-        endDate: '2026-01-31'
+        startDate: '2026-03-25',
+        endDate: '2026-03-31'
       }
     },
     {
@@ -148,8 +148,8 @@ export class SampleDataService {
         name: 'Order L',
         workCenterId: 'wc1',
         status: 'blocked' as WorkOrderStatus,
-        startDate: '2026-01-26',
-        endDate: '2026-01-31'
+        startDate: '2026-03-26',
+        endDate: '2026-03-31'
       }
     }
   ]

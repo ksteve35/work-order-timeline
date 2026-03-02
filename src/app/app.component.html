@@ -14,13 +14,8 @@
   <div class="timeline-body">
     <!-- Left panel: Work Centers -->
     <div class="work-center-column">
-      <div class="work-center-header">
-        Work Center
-      </div>
-      <div
-        class="work-center-row"
-        *ngFor="let wc of workCenters"
-      >
+      <div class="work-center-header">Work Center</div>
+      <div class="work-center-row" *ngFor="let wc of workCenters">
         {{ wc.data.name }}
       </div>
     </div>
@@ -29,36 +24,25 @@
     <div class="timeline-grid">
       <!-- Header row -->
       <div class="timeline-header-row">
-        <div
-          class="timeline-cell"
-          *ngFor="let day of [].constructor(31); let i = index"
-        >
-          {{ 14 + i }}
+        <div #timelineCell class="timeline-cell" *ngFor="let day of getTimelineDays()">
+          {{ day }}
         </div>
       </div>
 
-      <!-- Timeline rows, one per work center -->
-      <div
-        class="timeline-row"
-        *ngFor="let wc of workCenters"
-        style="position: relative"
-      >
-        <!-- Timeline cells -->
-        <div
-          class="timeline-cell"
-          *ngFor="let day of [].constructor(31)"
-        ></div>
+      <!-- Timeline rows -->
+      <div class="timeline-row" *ngFor="let wc of workCenters">
+        <div class="timeline-cell" *ngFor="let day of getTimelineDays()"></div>
 
-        <!-- Work order bars -->
-        <div
-          *ngFor="let order of getOrdersForWorkCenter(wc.docId)"
-          class="work-order-bar"
-          [style.left.px]="getBarStyle(order.data.startDate, order.data.endDate).left"
-          [style.width.px]="getBarStyle(order.data.startDate, order.data.endDate).width"
-          [style.background-color]="getStatusColor(order.data.status)"
-        >
-          {{ order.data.name }}
-        </div>
+        <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">
+          <div
+            class="work-order-bar"
+            [style.left.px]="getBarStyle(order.data.startDate, order.data.endDate).left"
+            [style.width.px]="getBarStyle(order.data.startDate, order.data.endDate).width"
+            [style.background-color]="getStatusColor(order.data.status)"
+          >
+            {{ order.data.name }}
+          </div>
+        </ng-container>
       </div>
     </div>
   </div>
