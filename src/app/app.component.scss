@@ -65,6 +65,11 @@
   grid-template-columns: 240px auto;
   grid-auto-rows: 48px; /* default row height */
   overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.timeline-body::-webkit-scrollbar {
+  display: none;
 }
 
 /* Left column header */
@@ -83,7 +88,6 @@
 /* Right column header */
 .timeline-header-row {
   display: grid;
-  height: 40px;
   border-bottom: 1px solid #e5e5e5;
   position: sticky;
   top: 0;
@@ -91,8 +95,12 @@
   z-index: 2;
 }
 
+.work-center-header,
+.timeline-header-row {
+  height: 100%;
+}
+
 .timeline-header-row .timeline-cell {
-  border-left: 1px solid #dadada;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -101,6 +109,18 @@
   &:first-child {
     border-left: none;
   }
+}
+
+.timeline-header-row,
+.timeline-row {
+  min-width: max-content;
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent 113px,
+    #dadada 113px,
+    #dadada 114px
+  );
 }
 
 /* Left column rows */

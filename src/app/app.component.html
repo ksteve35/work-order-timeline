@@ -11,10 +11,10 @@
     <div class="work-center-header">Work Center</div>
     <div
       class="timeline-header-row"
-      [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', 114px)'"
+      [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
     >
       <div class="timeline-cell" *ngFor="let day of getTimelineDays()">
-        {{ day }}
+        {{ day | date: 'MMM d' }}
       </div>
     </div>
 
@@ -29,7 +29,7 @@
       <!-- Right column cell -->
       <div
         class="timeline-row"
-        [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', 114px)'"
+        [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
       >
         <div class="timeline-cell" *ngFor="let day of getTimelineDays()"></div>
         <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">

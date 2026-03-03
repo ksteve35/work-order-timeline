@@ -10,8 +10,9 @@ import { WorkCenterDocument, WorkOrderDocument } from './models/documents.model'
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  timelineStart = new Date('2026-03-14')
-  timelineEnd = new Date('2026-03-31')
+  columnWidth: number = 114;
+  timelineStart: Date = new Date(2026, 2, 10) // March 10, 2026 (0-based)
+  timelineEnd: Date = new Date(2026, 11, 31) // December 31, 2026 (0-based)
   workCenters: WorkCenterDocument[] = []
   workOrders: WorkOrderDocument[] = []
 
@@ -26,12 +27,21 @@ export class AppComponent implements OnInit {
     return this.workOrders.filter(order => order.data.workCenterId === wcId)
   }
 
-  getTimelineDays(): number[] {
-    const days: number[] = []
-    let d = new Date(this.timelineStart)
-    while (d <= this.timelineEnd) {
-      days.push(d.getDate())
-      d.setDate(d.getDate() + 1)
+  getTimelineDays(): Date[] {
+    const days: Date[] = []
+    const current = new Date(
+      this.timelineStart.getFullYear(),
+      this.timelineStart.getMonth(),
+      this.timelineStart.getDate()
+    )
+    const end = new Date(
+      this.timelineEnd.getFullYear(),
+      this.timelineEnd.getMonth(),
+      this.timelineEnd.getDate()
+    )
+    while (current <= end) {
+      days.push(new Date(current))
+      current.setDate(current.getDate() + 1)
     }
     return days
   }
