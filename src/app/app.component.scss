@@ -66,18 +66,6 @@
   border-bottom: 1px solid #e5e5e5;
 }
 
-.timeline-header-row .timeline-cell {
-  display: block;
-  height: 40px;
-  line-height: 40px;
-  padding: 0 8px;
-  border-left: 1px solid #dadada;
-
-  &:first-child {
-    border-left: none;
-  }
-}
-
 /* Timeline rows grid */
 .timeline-row {
   display: grid;
@@ -93,15 +81,13 @@
   }
 }
 
-.timeline-row .timeline-cell {
+.timeline-cell {
   box-sizing: border-box;
   padding: 0 8px;
-  display: flex;
-  align-items: center;
-  border-left: 1px solid #dadada;
+  border-right: 1px solid #dadada;
 
   &:first-child {
-    border-left: none;
+    border-left: 1px solid #dadada;
   }
 }
 
