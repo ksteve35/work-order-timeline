@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { SampleDataService } from './services/sample-data.service'
 import { WorkCenterDocument, WorkOrderDocument } from './models/documents.model'
@@ -9,7 +9,8 @@ import { WorkCenterDocument, WorkOrderDocument } from './models/documents.model'
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
+  @ViewChild('timelineBody') timelineBody!: ElementRef<HTMLDivElement>
   columnWidth: number = 114;
   timelineStart: Date = new Date(2026, 2, 10) // March 10, 2026 (0-based)
   timelineEnd: Date = new Date(2026, 11, 31) // December 31, 2026 (0-based)
@@ -21,6 +22,23 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.workCenters = this.sampleData.getWorkCenters()
     this.workOrders = this.sampleData.getWorkOrders()
+  }
+
+
+  ngAfterViewInit(): void {
+    const el = this.timelineBody.nativeElement
+    el.addEventListener(
+      'wheel',
+      (event: WheelEvent) => {
+        // Only convert vertical wheel to horizontal scroll
+        // Only hijack if horizontal scrolling is actually possible
+        if (Math.abs(event.deltaY) > Math.abs(event.deltaX) && el.scrollWidth > el.clientWidth) {
+          event.preventDefault()
+          el.scrollLeft += event.deltaY
+        }
+      },
+      { passive: false }
+    )
   }
 
   getOrdersForWorkCenter(wcId: string): WorkOrderDocument[] {
