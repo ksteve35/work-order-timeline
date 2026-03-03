@@ -4,51 +4,43 @@
 <div class="timeline-container">
   <div class="timeline-header">
     <div class="page-title">Work Orders</div>
-    <div class="timescale-selector">
-      <div class="timescale-selector-left">Timescale</div>
-      <div class="timescale-selector-right">
-        <select id="timescaleSelection">
-          <option>Day</option>
-          <option>Week</option>
-          <option>Month</option>
-        </select>
+  </div>
+  <!-- SHARED GRID BODY -->
+  <div class="timeline-body">
+    <!-- HEADER ROW -->
+    <div class="work-center-header">Work Center</div>
+    <div
+      class="timeline-header-row"
+      [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', 1fr)'"
+    >
+      <div class="timeline-cell" *ngFor="let day of getTimelineDays()">
+        {{ day }}
       </div>
     </div>
-  </div>
 
-  <div class="timeline-body">
-    <!-- Left panel: Work Centers -->
-    <div class="work-center-column">
-      <div class="work-center-header">Work Center</div>
-      <div class="work-center-row" *ngFor="let wc of workCenters">
+    <!-- DATA ROWS -->
+    <ng-container *ngFor="let wc of workCenters">
+
+      <!-- Left column cell -->
+      <div class="work-center-row">
         {{ wc.data.name }}
       </div>
-    </div>
 
-    <!-- Right panel: Timeline grid -->
-    <div class="timeline-grid">
-      <!-- Header row -->
-      <div class="timeline-header-row">
-        <div #timelineCell class="timeline-cell" *ngFor="let day of getTimelineDays()">
-          {{ day }}
-        </div>
-      </div>
-
-      <!-- Timeline rows -->
-      <div class="timeline-row" *ngFor="let wc of workCenters">
+      <!-- Right column cell -->
+      <div
+        class="timeline-row"
+        [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', 1fr)'"
+      >
         <div class="timeline-cell" *ngFor="let day of getTimelineDays()"></div>
-
         <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">
           <div
             class="work-order-bar"
-            [style.left.px]="getBarStyle(order.data.startDate, order.data.endDate).left"
-            [style.width.px]="getBarStyle(order.data.startDate, order.data.endDate).width"
-            [style.background-color]="getStatusColor(order.data.status)"
+            [ngStyle]="getBarStyleObject(order)"
           >
             {{ order.data.name }}
           </div>
         </ng-container>
       </div>
-    </div>
+    </ng-container>
   </div>
 </div>
