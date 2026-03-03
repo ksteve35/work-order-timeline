@@ -62,7 +62,7 @@
 /* Shared timeline grid */
 .timeline-body {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 240px auto;
   grid-auto-rows: 48px; /* default row height */
   overflow-x: auto;
 }
@@ -76,7 +76,6 @@
   font-weight: 600;
   border-bottom: 1px solid #e5e5e5;
   background: #fafafa;
-  // z-index: 3;
   top: 0;
   z-index: 5;
 }
@@ -123,6 +122,7 @@
   left: 0;
   z-index: 4;
   background: #fafafa;
+  border-right: 1px solid #dadada;
 }
 
 /* Right column rows */
@@ -130,14 +130,17 @@
   display: grid;
   position: relative;
   border-bottom: 1px solid #dadada;
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent,
+    transparent 113px,
+    #dadada 113px,
+    #dadada 114px
+  );
 
   &:hover {
     background: #edeff2;
   }
-}
-
-.timeline-row .timeline-cell {
-  border-left: 1px solid #dadada;
 }
 
 .work-order-bar {
