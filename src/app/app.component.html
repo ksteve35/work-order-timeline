@@ -32,10 +32,17 @@
       </div>
 
       <!-- DATA ROWS -->
-      <ng-container *ngFor="let wc of workCenters">
+      <ng-container *ngFor="let wc of workCenters; let i = index">
 
         <!-- Left column cell -->
-        <div class="work-center-row">
+        <div
+          class="work-center-row"
+          [style.borderBottom]="
+            i === workCenters.length - 1
+              ? '1px solid rgba(230, 235, 240, 1)'
+              : 'none'
+          "
+        >
           {{ wc.data.name }}
         </div>
 

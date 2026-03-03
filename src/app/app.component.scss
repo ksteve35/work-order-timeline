@@ -1,10 +1,14 @@
+$grid-border-color: rgba(230, 235, 240, 1);
+$grid-border: 1px solid $grid-border-color;
+$page-font-family: "Circular-Std", sans-serif;
 $page-left-offset: 101px;
+$work-center-left-offset: 31px;
 
 .timeline-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  font-family: "Circular-Std", sans-serif;
+  font-family: $page-font-family;
 }
 
 /* Logo container */
@@ -62,7 +66,7 @@ $page-left-offset: 101px;
   justify-content: center;
   border-radius: 5px 0 0 5px;
   color: rgba(104, 113, 150, 1);
-  font-family: "Circular-Std", sans-serif;
+  font-family: $page-font-family;
   font-size: 13px;
   font-weight: 500;
 }
@@ -81,6 +85,7 @@ $page-left-offset: 101px;
   display: grid;
   grid-template-columns: 240px auto;
   grid-auto-rows: 48px; /* default row height */
+  border-top: $grid-border;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -94,22 +99,30 @@ $page-left-offset: 101px;
   height: 40px;
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  padding: 0 0 0 $work-center-left-offset;
   font-weight: 600;
-  border-bottom: 1px solid #e5e5e5;
-  background: #fafafa;
+  border-bottom: $grid-border;
+  background: #fff;
   top: 0;
   z-index: 5;
+  color: rgba(104, 113, 150, 1);
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 /* Right column header */
 .timeline-header-row {
   display: grid;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: $grid-border;
   position: sticky;
   top: 0;
   background: #fff;
   z-index: 2;
+  color: rgba(104, 113, 150, 1);
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 400;
 }
 
 .work-center-header,
@@ -135,8 +148,8 @@ $page-left-offset: 101px;
     to right,
     transparent,
     transparent 113px,
-    #dadada 113px,
-    #dadada 114px
+    $grid-border-color 113px,
+    $grid-border-color 114px
   );
 }
 
@@ -144,9 +157,13 @@ $page-left-offset: 101px;
 .work-center-row {
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  border-bottom: 1px solid #dadada;
+  padding: 0 0 0 $work-center-left-offset;
+  border-top: $grid-border;
   background: #fafafa;
+  color: rgba(3, 9, 41, 1);
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 400;
 
   &:hover {
     background: #f5f7fa;
@@ -158,22 +175,27 @@ $page-left-offset: 101px;
   position: sticky;
   left: 0;
   z-index: 4;
-  background: #fafafa;
-  border-right: 1px solid #dadada;
+  background: #fff;
+  border-right: $grid-border;
+  border-left: $grid-border;
 }
 
 /* Right column rows */
 .timeline-row {
   display: grid;
   position: relative;
-  border-bottom: 1px solid #dadada;
+  border-top: $grid-border;
   background-image: repeating-linear-gradient(
     to right,
     transparent,
     transparent 113px,
-    #dadada 113px,
-    #dadada 114px
+    $grid-border-color 113px,
+    $grid-border-color 114px
   );
+
+  &:last-child {
+    border-bottom: $grid-border;
+  }
 
   &:hover {
     background: #edeff2;
