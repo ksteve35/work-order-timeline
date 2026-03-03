@@ -1,46 +1,60 @@
-<div class="naologic-logo-container">
-  <img src="/images/NaologicLogo.png" alt="Naologic Logo" class="naologic-logo" />
-</div>
-<div class="timeline-container">
-  <div class="timeline-header">
-    <div class="page-title">Work Orders</div>
+<div class="page-content">
+  <div class="naologic-logo-container">
+    <img src="/images/NaologicLogo.png" alt="Naologic Logo" class="naologic-logo" />
   </div>
-  <!-- SHARED GRID BODY -->
-  <div class="timeline-body">
-    <!-- HEADER ROW -->
-    <div class="work-center-header">Work Center</div>
-    <div
-      class="timeline-header-row"
-      [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
-    >
-      <div class="timeline-cell" *ngFor="let day of getTimelineDays()">
-        {{ day | date: 'MMM d' }}
+  <div class="timeline-container">
+    <div class="timeline-header">
+      <div class="page-title">Work Orders</div>
+      <div class="timescale-selector">
+        <div class="timescale-selector-both">
+          <div class="timescale-selector-left">Timescale</div>
+          <div class="timescale-selector-right">
+            <select id="timescaleSelection">
+              <option>Day</option>
+              <option>Week</option>
+              <option>Month</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
-
-    <!-- DATA ROWS -->
-    <ng-container *ngFor="let wc of workCenters">
-
-      <!-- Left column cell -->
-      <div class="work-center-row">
-        {{ wc.data.name }}
-      </div>
-
-      <!-- Right column cell -->
+    <!-- SHARED GRID BODY -->
+    <div class="timeline-body">
+      <!-- HEADER ROW -->
+      <div class="work-center-header">Work Center</div>
       <div
-        class="timeline-row"
+        class="timeline-header-row"
         [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
       >
-        <div class="timeline-cell" *ngFor="let day of getTimelineDays()"></div>
-        <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">
-          <div
-            class="work-order-bar"
-            [ngStyle]="getBarStyleObject(order)"
-          >
-            {{ order.data.name }}
-          </div>
-        </ng-container>
+        <div class="timeline-cell" *ngFor="let day of getTimelineDays()">
+          {{ day | date: 'MMM d' }}
+        </div>
       </div>
-    </ng-container>
+
+      <!-- DATA ROWS -->
+      <ng-container *ngFor="let wc of workCenters">
+
+        <!-- Left column cell -->
+        <div class="work-center-row">
+          {{ wc.data.name }}
+        </div>
+
+        <!-- Right column cell -->
+        <div
+          class="timeline-row"
+          [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
+        >
+          <div class="timeline-cell" *ngFor="let day of getTimelineDays()"></div>
+          <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">
+            <div
+              class="work-order-bar"
+              [ngStyle]="getBarStyleObject(order)"
+            >
+              {{ order.data.name }}
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+    </div>
   </div>
 </div>
