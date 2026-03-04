@@ -1,9 +1,44 @@
+// --- Variables ----------------------------------------------------------------
+
 $grid-border-color: rgba(230, 235, 240, 1);
 $grid-border: 1px solid $grid-border-color;
 $grid-current-time-color: rgba(212, 215, 255, 1);
 $page-font-family: "Circular-Std", sans-serif;
 $page-left-offset: 101px;
 $work-center-left-offset: 31px;
+$left-col-width: 240px;
+$row-height: 48px;
+$header-height: 40px;
+
+// --- Reset --------------------------------------------------------------------
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+// --- Page shell ---------------------------------------------------------------
+
+.page-content {
+  padding-left: $page-left-offset;
+  font-family: $page-font-family;
+}
+
+.naologic-logo-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 50px;
+  background-color: #fff;
+}
+
+.naologic-logo {
+  width: 80px;
+  height: 10px;
+}
+
+// --- Timeline container -------------------------------------------------------
 
 .timeline-container {
   display: flex;
@@ -12,26 +47,8 @@ $work-center-left-offset: 31px;
   font-family: $page-font-family;
 }
 
-/* Logo container */
-.naologic-logo-container {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 50px;
-  background-color: rgba(255, 255, 255, 1);
-  position: relative;
-}
+// --- Page header and timescale selector ----------------------------------------
 
-.naologic-logo {
-  width: 80px;
-  height: 10px;
-}
-
-.page-content {
-  padding-left: $page-left-offset;
-}
-
-/* Page header */
 .timeline-header {
   padding-top: 47px;
   margin-bottom: 10px;
@@ -47,7 +64,6 @@ $work-center-left-offset: 31px;
   display: flex;
   padding-top: 26px;
   padding-bottom: 24px;
-  overflow: hidden;
   background-color: #fff;
 }
 
@@ -79,120 +95,120 @@ $work-center-left-offset: 31px;
   align-items: center;
   justify-content: center;
   border-radius: 0 5px 5px 0;
-}
 
-/* Shared timeline grid */
-.timeline-body {
-  display: grid;
-  grid-template-columns: 240px auto;
-  grid-auto-rows: 48px; /* default row height */
-  border-top: $grid-border;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.timeline-body::-webkit-scrollbar {
-  display: none;
-}
-
-/* Left column header */
-.work-center-header {
-  height: 40px;
-  display: flex;
-  align-items: center;
-  padding: 0 0 0 $work-center-left-offset;
-  font-weight: 600;
-  border-bottom: $grid-border;
-  background: #fff;
-  top: 0;
-  z-index: 5;
-  color: rgba(104, 113, 150, 1);
-  font-family: $page-font-family;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-/* Right column header */
-.timeline-header-row {
-  display: grid;
-  border-bottom: $grid-border;
-  position: sticky;
-  top: 0;
-  background: #fff;
-  z-index: 2;
-  color: rgba(104, 113, 150, 1);
-  font-family: $page-font-family;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.work-center-header,
-.timeline-header-row {
-  height: 100%;
-}
-
-.timeline-header-row .timeline-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 8px;
-
-  &:first-child {
-    border-left: none;
+  select {
+    border: none;
+    background: transparent;
+    font-family: $page-font-family;
+    font-size: 13px;
+    color: rgba(3, 9, 41, 1);
+    cursor: pointer;
+    outline: none;
+    width: 100%;
+    padding: 0 4px;
+    appearance: none; // hide default arrow for a cleaner look
   }
 }
 
-.timeline-header-row,
-.timeline-row {
-  min-width: max-content;
-  background-image: repeating-linear-gradient(
-    to right,
-    transparent,
-    transparent 113px,
-    $grid-border-color 113px,
-    $grid-border-color 114px
-  );
+// --- Two-column flex wrapper --------------------------------------------------
+
+.timeline-body-wrapper {
+  display: flex;
+  border-top: $grid-border;
+  border-left: $grid-border;
+  overflow: hidden; // right-column handles its own horizontal scroll
 }
 
-/* Left column rows */
+// --- Left column (sticky work center labels) ----------------------------------
+
+.left-column {
+  flex-shrink: 0;
+  width: $left-col-width;
+  border-right: $grid-border;
+  z-index: 5;
+  background: #fff;
+}
+
+.work-center-header {
+  height: $header-height;
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 $work-center-left-offset;
+  border-bottom: $grid-border;
+  color: rgba(104, 113, 150, 1);
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 400;
+}
+
 .work-center-row {
+  height: $row-height;
   display: flex;
   align-items: center;
   padding: 0 0 0 $work-center-left-offset;
   border-top: $grid-border;
-  background: #fafafa;
   color: rgba(3, 9, 41, 1);
   font-family: $page-font-family;
   font-size: 14px;
   font-weight: 400;
+  background: #fff;
 
   &:hover {
-    background: rgba(250, 251, 253, 1);
+    background: rgba(238, 240, 255, 1);
+  }
+
+  // Bottom border on last row
+  &:last-child {
+    border-bottom: $grid-border;
   }
 }
 
-.work-center-header,
-.work-center-row {
-  position: sticky;
-  left: 0;
-  z-index: 4;
-  background: #fff;
-  border-right: $grid-border;
-  border-left: $grid-border;
+// --- Right column (scrollable timeline) --------------------------------------
+
+.right-column {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-/* Right column rows */
-.timeline-row {
+// --- Timeline header row ------------------------------------------------------
+
+.timeline-header-row {
   display: grid;
-  position: relative;
+  height: $header-height;
+  border-bottom: $grid-border;
+  background: #fff;
+  // min-width is set inline via [style.width.px] to match the data rows
+}
+
+// Shared cell style (used in header and bg grid)
+.timeline-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border-right: $grid-border;
+  color: rgba(104, 113, 150, 1);
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 400;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+// --- Data rows ----------------------------------------------------------------
+
+.timeline-row {
+  height: $row-height;
+  position: relative; // Required so absolute-positioned children (bars, indicator) are anchored here
   border-top: $grid-border;
-  background-image: repeating-linear-gradient(
-    to right,
-    transparent,
-    transparent 113px,
-    $grid-border-color 113px,
-    $grid-border-color 114px
-  );
 
   &:last-child {
     border-bottom: $grid-border;
@@ -203,13 +219,67 @@ $work-center-left-offset: 31px;
   }
 }
 
+// Background grid lines. Rendered as a grid but pointer-events:none
+// so clicks fall through to the .timeline-row for future interactions.
+.timeline-cells-bg {
+  display: grid;
+  position: absolute;
+  inset: 0; // top:0 right:0 bottom:0 left:0
+  pointer-events: none;
+
+  .timeline-cell {
+    border-right: $grid-border;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+}
+
+// --- Work order bars ----------------------------------------------------------
+//  Left and width are set inline (pixels) based on day index calculations.
+
 .work-order-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   height: 24px;
   border-radius: 4px;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   padding: 0 8px;
-  pointer-events: auto;
+  font-size: 12px;
+  font-family: $page-font-family;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.bar-label {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bar-status {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+// --- Current day indicator ----------------------------------------------------
+
+.current-day-line {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: $grid-current-time-color;
+  pointer-events: none;
+  z-index: 2;
 }

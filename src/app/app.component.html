@@ -1,8 +1,10 @@
 <div class="page-content">
+  <!-- Logo -->
   <div class="naologic-logo-container">
     <img src="/images/NaologicLogo.png" alt="Naologic Logo" class="naologic-logo" />
   </div>
   <div class="timeline-container">
+    <!-- Page header and timescale selector -->
     <div class="timeline-header">
       <div class="page-title">Work Orders</div>
       <div class="timescale-selector">
@@ -18,50 +20,56 @@
         </div>
       </div>
     </div>
-    <!-- SHARED GRID BODY -->
-    <div class="timeline-body" #timelineBody>
-      <!-- HEADER ROW -->
-      <div class="work-center-header">Work Center</div>
-      <div
-        class="timeline-header-row"
-        [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
-      >
-        <div class="timeline-cell" *ngFor="let day of getTimelineDays()">
-          {{ day | date: 'MMM d' }}
-        </div>
-      </div>
-
-      <!-- DATA ROWS -->
-      <ng-container *ngFor="let wc of workCenters; let i = index">
-
-        <!-- Left column cell -->
-        <div
-          class="work-center-row"
-          [style.borderBottom]="
-            i === workCenters.length - 1
-              ? '1px solid rgba(230, 235, 240, 1)'
-              : 'none'
-          "
-        >
+    <!-- TIMELINE BODY -->
+    <div class="timeline-body-wrapper">
+      <!-- LEFT: work center labels -->
+      <div class="left-column">
+        <div class="work-center-header">Work Center</div>
+        <div class="work-center-row" *ngFor="let wc of workCenters">
           {{ wc.data.name }}
         </div>
-
-        <!-- Right column cell -->
+      </div>
+      <!-- RIGHT: scrollable timeline -->
+      <div class="right-column" #rightColumn>
+        <!-- Header: one cell per day -->
         <div
-          class="timeline-row"
+          class="timeline-header-row"
+          [style.width.px]="getTimelineDays().length * columnWidth"
           [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
         >
-          <div class="timeline-cell" *ngFor="let day of getTimelineDays()"></div>
+          <div class="timeline-cell" *ngFor="let day of getTimelineDays()">
+            {{ day | date: 'MMM d' }}
+          </div>
+        </div>
+        <!-- Data rows: one per work center -->
+        <div
+          class="timeline-row"
+          *ngFor="let wc of workCenters"
+          [style.width.px]="getTimelineDays().length * columnWidth"
+        >
+          <!--
+            Background grid lines. Pointer-events:none so clicks pass through
+            to the row itself for future create-panel functionality.
+          -->
+          <div
+            class="timeline-cells-bg"
+            [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
+          >
+            <div class="timeline-cell" *ngFor="let day of getTimelineDays()"></div>
+          </div>
+          <!-- Work order bars (absolutely positioned over the row) -->
           <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">
-            <div
-              class="work-order-bar"
-              [ngStyle]="getBarStyleObject(order)"
-            >
-              {{ order.data.name }}
+            <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
+              <span class="bar-label">{{ order.data.name }}</span>
+              <span class="bar-status" [ngStyle]="getStatusBadgeStyle(order.data.status)">
+                {{ order.data.status | titlecase }}
+              </span>
             </div>
           </ng-container>
+          <!-- Current day vertical indicator -->
+          <div class="current-day-line" [style.left.px]="getCurrentDayOffset()"></div>
         </div>
-      </ng-container>
+      </div>
     </div>
   </div>
 </div>
