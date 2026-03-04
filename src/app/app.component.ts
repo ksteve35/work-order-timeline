@@ -131,6 +131,16 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
+  getStatusBadgeColor(status: string): string {
+    switch (status) {
+      case 'open': return '#E4FDFF'
+      case 'in-progress': return '#D6D8FF'
+      case 'complete': return '#E1FFCC'
+      case 'blocked': return '#FCEEB5'
+      default: return '#E4FDFF'
+    }
+  }
+
   /**
    * Returns inline styles for a work order bar.
    * Bars are position:absolute inside a position:relative row,
@@ -146,7 +156,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       'left': `${leftPx}px`,
       'width': `${widthPx}px`,
       'background-color': this.getStatusBgColor(order.data.status),
-      'color': this.getStatusTextColor(order.data.status),
       'border': `1px solid ${this.getStatusBorderColor(order.data.status)}`,
     }
   }
@@ -154,7 +163,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   /** Styles for the status badge pill inside each bar */
   getStatusBadgeStyle(status: string): { [key: string]: string } {
     return {
-      'background-color': this.getStatusBgColor(status),
+      'background-color': this.getStatusBadgeColor(status),
       'color': this.getStatusTextColor(status),
       'border': `1px solid ${this.getStatusBorderColor(status)}`,
     }

@@ -8,7 +8,7 @@ $page-left-offset: 101px;
 $work-center-left-offset: 31px;
 $left-col-width: 240px;
 $row-height: 48px;
-$header-height: 40px;
+$header-height: 32px;
 
 // --- Reset --------------------------------------------------------------------
 
@@ -50,7 +50,7 @@ $header-height: 40px;
 // --- Page header and timescale selector ----------------------------------------
 
 .timeline-header {
-  padding-top: 47px;
+  padding-top: 45px;
   margin-bottom: 10px;
 }
 
@@ -106,7 +106,7 @@ $header-height: 40px;
     outline: none;
     width: 100%;
     padding: 0 4px;
-    appearance: none; // hide default arrow for a cleaner look
+    appearance: none;
   }
 }
 
@@ -116,7 +116,7 @@ $header-height: 40px;
   display: flex;
   border-top: $grid-border;
   border-left: $grid-border;
-  overflow: hidden; // right-column handles its own horizontal scroll
+  overflow: hidden;
 }
 
 // --- Left column (sticky work center labels) ----------------------------------
@@ -157,7 +157,6 @@ $header-height: 40px;
     background: rgba(238, 240, 255, 1);
   }
 
-  // Bottom border on last row
   &:last-child {
     border-bottom: $grid-border;
   }
@@ -183,10 +182,8 @@ $header-height: 40px;
   height: $header-height;
   border-bottom: $grid-border;
   background: #fff;
-  // min-width is set inline via [style.width.px] to match the data rows
 }
 
-// Shared cell style (used in header and bg grid)
 .timeline-cell {
   display: flex;
   align-items: center;
@@ -207,7 +204,7 @@ $header-height: 40px;
 
 .timeline-row {
   height: $row-height;
-  position: relative; // Required so absolute-positioned children (bars, indicator) are anchored here
+  position: relative;
   border-top: $grid-border;
 
   &:last-child {
@@ -219,12 +216,10 @@ $header-height: 40px;
   }
 }
 
-// Background grid lines. Rendered as a grid but pointer-events:none
-// so clicks fall through to the .timeline-row for future interactions.
 .timeline-cells-bg {
   display: grid;
   position: absolute;
-  inset: 0; // top:0 right:0 bottom:0 left:0
+  inset: 0;
   pointer-events: none;
 
   .timeline-cell {
@@ -237,7 +232,9 @@ $header-height: 40px;
 }
 
 // --- Work order bars ----------------------------------------------------------
-//  Left and width are set inline (pixels) based on day index calculations.
+// Left and width are set inline (pixels) based on day index calculations.
+// The bar uses space-between so the label sits left and the badge sits right,
+// with 36px of padding-right reserving space from the bar's right edge.
 
 .work-order-bar {
   position: absolute;
@@ -247,8 +244,9 @@ $header-height: 40px;
   border-radius: 4px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 8px;
+  justify-content: space-between;
+  padding: 0 36px 0 8px;
+  color: rgba(3, 9, 41, 1);
   font-size: 12px;
   font-family: $page-font-family;
   white-space: nowrap;
@@ -261,6 +259,7 @@ $header-height: 40px;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
 }
 
 .bar-status {
@@ -270,6 +269,7 @@ $header-height: 40px;
   padding: 1px 6px;
   border-radius: 10px;
   white-space: nowrap;
+  margin-left: 6px;
 }
 
 // --- Current day indicator ----------------------------------------------------
