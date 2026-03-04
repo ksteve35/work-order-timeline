@@ -32,9 +32,11 @@ export class AppComponent implements OnInit, AfterViewInit {
       (event: WheelEvent) => {
         // Only convert vertical wheel to horizontal scroll
         // Only hijack if horizontal scrolling is actually possible
-        if (Math.abs(event.deltaY) > Math.abs(event.deltaX) && el.scrollWidth > el.clientWidth) {
-          event.preventDefault()
-          el.scrollLeft += event.deltaY
+        if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+          if (el.scrollWidth > el.clientWidth) {
+            event.preventDefault()
+            el.scrollLeft += event.deltaY
+          }
         }
       },
       { passive: false }
