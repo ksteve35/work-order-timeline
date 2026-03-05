@@ -1,20 +1,36 @@
-$page-left-offset: 101px;
+// --- Variables ----------------------------------------------------------------
 
-.timeline-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  font-family: "Circular-Std", sans-serif;
+$grid-border-color: rgba(230, 235, 240, 1);
+$grid-border: 1px solid $grid-border-color;
+$grid-current-time-color: rgba(212, 215, 255, 1);
+$header-height: 32px;
+$left-col-width: 240px;
+$page-font-family: "Circular-Std", sans-serif;
+$page-left-offset: 101px;
+$row-height: 48px;
+$work-center-left-offset: 31px;
+
+// --- Reset --------------------------------------------------------------------
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-/* Logo container */
+// --- Page shell ---------------------------------------------------------------
+
+.page-content {
+  padding-left: $page-left-offset;
+  font-family: $page-font-family;
+}
+
 .naologic-logo-container {
   display: flex;
   align-items: center;
   width: 100%;
   height: 50px;
-  background-color: rgba(255, 255, 255, 1);
-  position: relative;
+  background-color: #fff;
 }
 
 .naologic-logo {
@@ -22,13 +38,19 @@ $page-left-offset: 101px;
   height: 10px;
 }
 
-.page-content {
-  padding-left: $page-left-offset;
+// --- Timeline container -------------------------------------------------------
+
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: $page-font-family;
 }
 
-/* Page header */
+// --- Page header and timescale selector ----------------------------------------
+
 .timeline-header {
-  padding-top: 47px;
+  padding-top: 45px;
   margin-bottom: 10px;
 }
 
@@ -42,7 +64,6 @@ $page-left-offset: 101px;
   display: flex;
   padding-top: 26px;
   padding-bottom: 24px;
-  overflow: hidden;
   background-color: #fff;
 }
 
@@ -61,6 +82,10 @@ $page-left-offset: 101px;
   align-items: center;
   justify-content: center;
   border-radius: 5px 0 0 5px;
+  color: rgba(104, 113, 150, 1);
+  font-family: $page-font-family;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .timescale-selector-right {
@@ -69,120 +94,198 @@ $page-left-offset: 101px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   border-radius: 0 5px 5px 0;
+  cursor: pointer;
 }
 
-/* Shared timeline grid */
-.timeline-body {
-  display: grid;
-  grid-template-columns: 240px auto;
-  grid-auto-rows: 48px; /* default row height */
-  overflow-x: auto;
-  scrollbar-width: none;
+// The active timescale value shown in indigo to match the design
+.timescale-value {
+  font-family: $page-font-family;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(62, 64, 219, 1);
 }
 
-.timeline-body::-webkit-scrollbar {
-  display: none;
+.timescale-chevron {
+  flex-shrink: 0;
 }
 
-/* Left column header */
+// --- Two-column flex wrapper --------------------------------------------------
+
+.timeline-body-wrapper {
+  display: flex;
+  border-top: $grid-border;
+  border-left: $grid-border;
+  overflow: hidden;
+}
+
+// --- Left column (sticky work center labels) ----------------------------------
+
+.left-column {
+  flex-shrink: 0;
+  width: $left-col-width;
+  border-right: $grid-border;
+  z-index: 5;
+  background: #fff;
+}
+
 .work-center-header {
-  height: 40px;
+  height: $header-height;
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  font-weight: 600;
-  border-bottom: 1px solid #e5e5e5;
-  background: #fafafa;
-  top: 0;
-  z-index: 5;
+  padding: 0 0 0 $work-center-left-offset;
+  border-bottom: $grid-border;
+  color: rgba(104, 113, 150, 1);
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 400;
 }
 
-/* Right column header */
+.work-center-row {
+  height: $row-height;
+  display: flex;
+  align-items: center;
+  padding: 0 0 0 $work-center-left-offset;
+  border-top: $grid-border;
+  color: rgba(3, 9, 41, 1);
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 400;
+  background: #fff;
+
+  &:hover {
+    background: rgba(238, 240, 255, 1);
+  }
+
+  &:last-child {
+    border-bottom: $grid-border;
+  }
+}
+
+// --- Right column (scrollable timeline) --------------------------------------
+
+.right-column {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// --- Timeline header row ------------------------------------------------------
+
 .timeline-header-row {
   display: grid;
-  border-bottom: 1px solid #e5e5e5;
-  position: sticky;
-  top: 0;
+  height: $header-height;
+  border-bottom: $grid-border;
   background: #fff;
-  z-index: 2;
 }
 
-.work-center-header,
-.timeline-header-row {
-  height: 100%;
-}
-
-.timeline-header-row .timeline-cell {
+.timeline-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 8px;
+  height: 100%;
+  border-right: $grid-border;
+  color: rgba(104, 113, 150, 1);
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 400;
 
-  &:first-child {
-    border-left: none;
+  &:last-child {
+    border-right: none;
   }
 }
 
-.timeline-header-row,
+// --- Data rows ----------------------------------------------------------------
+
 .timeline-row {
-  min-width: max-content;
-  background-image: repeating-linear-gradient(
-    to right,
-    transparent,
-    transparent 113px,
-    #dadada 113px,
-    #dadada 114px
-  );
-}
-
-/* Left column rows */
-.work-center-row {
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  border-bottom: 1px solid #dadada;
-  background: #fafafa;
-
-  &:hover {
-    background: #f5f7fa;
-  }
-}
-
-.work-center-header,
-.work-center-row {
-  position: sticky;
-  left: 0;
-  z-index: 4;
-  background: #fafafa;
-  border-right: 1px solid #dadada;
-}
-
-/* Right column rows */
-.timeline-row {
-  display: grid;
+  height: $row-height;
   position: relative;
-  border-bottom: 1px solid #dadada;
-  background-image: repeating-linear-gradient(
-    to right,
-    transparent,
-    transparent 113px,
-    #dadada 113px,
-    #dadada 114px
-  );
+  border-top: $grid-border;
+
+  &:last-child {
+    border-bottom: $grid-border;
+  }
 
   &:hover {
-    background: #edeff2;
+    background: rgba(238, 240, 255, 1);
   }
 }
+
+.timeline-cells-bg {
+  display: grid;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  .timeline-cell {
+    border-right: $grid-border;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+}
+
+// --- Work order bars ----------------------------------------------------------
+// Left and width are set inline (pixels) based on day index calculations.
+// The bar uses space-between so the label sits left and the badge sits right,
+// with 8px of padding-right so the badge has breathing room from the bar edge.
 
 .work-order-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   height: 24px;
   border-radius: 4px;
-  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 0 8px;
-  pointer-events: auto;
+  color: rgba(3, 9, 41, 1);
+  font-size: 12px;
+  font-family: $page-font-family;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.bar-label {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  margin-right: 6px;
+}
+
+// Badge has no border — background + text color only, per the design
+.bar-status {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 16px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0 6px;
+  border-radius: 10px;
+  white-space: nowrap;
+  margin-right: 36px;
+}
+
+// --- Current day indicator ----------------------------------------------------
+
+.current-day-line {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background-color: $grid-current-time-color;
+  pointer-events: none;
+  z-index: 2;
 }
