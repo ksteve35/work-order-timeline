@@ -69,10 +69,12 @@ $work-center-left-offset: 31px;
 
 .timescale-selector-both {
   display: flex;
-  width: 146px;
+  width: auto;
   height: 25px;
   box-shadow: 1px 2.5px 3px -1.5px rgba(200, 207, 233, 1);
   border-radius: 5px;
+  overflow: visible;
+  position: relative;
 }
 
 .timescale-selector-left {
@@ -86,6 +88,7 @@ $work-center-left-offset: 31px;
   font-family: $page-font-family;
   font-size: 13px;
   font-weight: 500;
+  border-right: $grid-border;
 }
 
 .timescale-selector-right {
@@ -94,21 +97,12 @@ $work-center-left-offset: 31px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
   border-radius: 0 5px 5px 0;
-  cursor: pointer;
+  overflow: visible;
 }
 
-// The active timescale value shown in indigo to match the design
-.timescale-value {
-  font-family: $page-font-family;
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(62, 64, 219, 1);
-}
-
-.timescale-chevron {
-  flex-shrink: 0;
+.timescale-ng-select {
+  width: auto;
 }
 
 // --- Two-column flex wrapper --------------------------------------------------
@@ -183,6 +177,12 @@ $work-center-left-offset: 31px;
   height: $header-height;
   border-bottom: $grid-border;
   background: #fff;
+
+  // Week view top row uses flex instead of grid so each cell can have variable width
+  &.timeline-header-row--week-top {
+    display: flex;
+    border-bottom: none;
+  }
 }
 
 .timeline-cell {
@@ -198,6 +198,14 @@ $work-center-left-offset: 31px;
 
   &:last-child {
     border-right: none;
+  }
+
+  // Week view top label cell — left-aligned, has its own bottom border
+  &.timeline-cell--week-label {
+    justify-content: flex-start;
+    padding-left: 8px;
+    border-bottom: $grid-border;
+    flex-shrink: 0;
   }
 }
 
@@ -233,7 +241,7 @@ $work-center-left-offset: 31px;
 }
 
 // --- Work order bars ----------------------------------------------------------
-// Left and width are set inline (pixels) based on day index calculations.
+// Left and width are set inline (pixels) based on column index calculations.
 // The bar uses space-between so the label sits left and the badge sits right,
 // with 8px of padding-right so the badge has breathing room from the bar edge.
 
@@ -301,7 +309,7 @@ $work-center-left-offset: 31px;
   left: 0;
   height: 22px;
   padding: 0 8px;
-  border-radius: 6px;
+  border-radius: 5px;
   background-color: rgba(212, 215, 255, 1);
   color: rgba(62, 64, 219, 1);
   font-family: $page-font-family;
@@ -316,7 +324,63 @@ $work-center-left-offset: 31px;
   position: absolute;
   top: $header-height;
   left: 0;
-  width: 2px;
+  width: 1px;
   height: calc(100% - #{$header-height});
+  border: 3px solid rgba(212, 215, 255, 1);
   background-color: $grid-current-time-color;
+}
+
+// Week view has a two-row header so the indicator must clear both rows
+.timeline-grid--week .current-period-label,
+.timeline-grid--week .current-period-line {
+  top: calc(#{$header-height} * 2);
+}
+
+// --- Global ng-select dropdown override (required because appendTo="body" ----
+// teleports the panel outside the component, bypassing view encapsulation)
+
+::ng-deep .ng-dropdown-panel {
+  z-index: 9999;
+  min-width: 200px !important;
+  border: none;
+  box-shadow: 0 0 0 1px rgba(104, 113, 150, 0.1),
+    0 2.5px 3px -1.5px rgba(200, 207, 233, 1),
+    0 4.5px 5px -1px rgba(216, 220, 235, 1);
+  border-radius: 6px;
+  overflow: hidden;
+  top: 30px !important;
+  left: 0 !important;
+  background-color: #fff;
+}
+
+::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(3, 9, 41, 1);
+  padding: 0 38px 0 12px;
+  height: 28px;
+
+  &:hover,
+  &.ng-option-marked {
+    background: rgba(238, 240, 255, 1);
+  }
+
+  &.ng-option-selected {
+    font-weight: 500;
+    color: rgba(62, 64, 219, 1);
+    background: #fff;
+  }
+}
+
+::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items {
+  background-color: #fff;
+  padding: 17px 0;
+}
+
+::ng-deep .timescale-ng-select .ng-select-container .ng-value-container .ng-value {
+  font-family: $page-font-family;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(62, 64, 219, 1) !important;
 }

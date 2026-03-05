@@ -11,15 +11,16 @@
         <div class="timescale-selector-both">
           <div class="timescale-selector-left">Timescale</div>
           <div class="timescale-selector-right">
-            <!--
-              The active value is rendered as styled text + chevron rather than
-              a native <select> so we can match the indigo color in the design.
-              @upgrade: wire selectedTimescale to actual zoom logic
-            -->
-            <span class="timescale-value">Month</span>
-            <svg class="timescale-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none">
-              <path d="M1 1L5 5L9 1" stroke="rgba(62, 64, 219, 1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            <ng-select
+              class="timescale-ng-select"
+              bindLabel="label"
+              bindValue="value"
+              appendTo=".timescale-selector-both"
+              [(ngModel)]="selectedTimescale"
+              [clearable]="false"
+              [items]="timescaleOptions"
+              [searchable]="false"
+            ></ng-select>
           </div>
         </div>
       </div>
@@ -38,31 +39,66 @@
         <!-- Wrapper gives position:relative context spanning header + all rows -->
         <div
           class="timeline-grid"
-          [style.width.px]="getTimelineDays().length * columnWidth"
+          [class.timeline-grid--week]="selectedTimescale === 'Week'"
+          [style.width.px]="getTotalColumns() * columnWidth"
         >
-          <!-- Header: one cell per day -->
-          <div
-            class="timeline-header-row"
-            [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
-          >
-            <div class="timeline-cell" *ngFor="let day of getTimelineDays()">
-              {{ day | date: 'MMM d' }}
+          <!-- WEEK VIEW: two-row header -->
+          <ng-container *ngIf="selectedTimescale === 'Week'">
+            <div class="timeline-header-row timeline-header-row--week-top">
+              <ng-container *ngFor="let group of getWeekGroups()">
+                <div
+                  class="timeline-cell timeline-cell--week-label"
+                  [style.width.px]="group.days.length * columnWidth"
+                >
+                  {{ group.label }}
+                </div>
+              </ng-container>
             </div>
-          </div>
+            <div
+              class="timeline-header-row"
+              [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
+            >
+              <ng-container *ngFor="let group of getWeekGroups()">
+                <div class="timeline-cell" *ngFor="let day of group.days">
+                  {{ getDayLabel(day) }}
+                </div>
+              </ng-container>
+            </div>
+          </ng-container>
+          <!-- HOUR / DAY / MONTH VIEW: single-row header -->
+          <ng-container *ngIf="selectedTimescale !== 'Week'">
+            <div
+              class="timeline-header-row"
+              [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
+            >
+              <ng-container *ngIf="selectedTimescale === 'Hour'">
+                <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
+                  {{ getHourLabel(col) }}
+                </div>
+              </ng-container>
+              <ng-container *ngIf="selectedTimescale === 'Day'">
+                <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
+                  {{ getDayLabel(col) }}
+                </div>
+              </ng-container>
+              <ng-container *ngIf="selectedTimescale === 'Month'">
+                <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
+                  {{ getMonthLabel(col) }}
+                </div>
+              </ng-container>
+            </div>
+          </ng-container>
           <!-- Data rows: one per work center -->
-          <div
-            class="timeline-row"
-            *ngFor="let wc of workCenters"
-          >
+          <div class="timeline-row" *ngFor="let wc of workCenters">
             <!--
               Background grid lines. Pointer-events:none so clicks pass through
               to the row itself for future create-panel functionality.
             -->
             <div
               class="timeline-cells-bg"
-              [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
+              [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
             >
-              <div class="timeline-cell" *ngFor="let day of getTimelineDays()"></div>
+              <div class="timeline-cell" *ngFor="let col of getTimelineColumns()"></div>
             </div>
             <!-- Work order bars (absolutely positioned over the row) -->
             <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">
