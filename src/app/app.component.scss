@@ -278,14 +278,45 @@ $work-center-left-offset: 31px;
   margin-right: 36px;
 }
 
-// --- Current day indicator ----------------------------------------------------
+// --- Current period indicator -------------------------------------------------
+// A single absolutely positioned element spanning the full grid height
+// (header + all rows). Contains a label pill at the top and a line below.
 
-.current-day-line {
+.timeline-grid {
+  position: relative;
+}
+
+.current-period-indicator {
   position: absolute;
   top: 0;
-  width: 2px;
-  height: 100%;
-  background-color: $grid-current-time-color;
+  bottom: 0;
+  width: 0;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
+}
+
+.current-period-label {
+  position: absolute;
+  top: $header-height;
+  left: 0;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background-color: rgba(212, 215, 255, 1);
+  color: rgba(62, 64, 219, 1);
+  font-family: $page-font-family;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.current-period-line {
+  position: absolute;
+  top: $header-height;
+  left: 0;
+  width: 2px;
+  height: calc(100% - #{$header-height});
+  background-color: $grid-current-time-color;
 }
