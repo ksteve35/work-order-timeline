@@ -278,7 +278,7 @@ $work-center-left-offset: 31px;
   margin-right: 36px;
 }
 
-// --- Current day indicator ----------------------------------------------------
+// --- Current period indicator -------------------------------------------------
 // A single absolutely positioned element spanning the full grid height
 // (header + all rows). Contains a label pill at the top and a line below.
 
@@ -286,7 +286,7 @@ $work-center-left-offset: 31px;
   position: relative;
 }
 
-.current-day-indicator {
+.current-period-indicator {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -295,7 +295,7 @@ $work-center-left-offset: 31px;
   z-index: 3;
 }
 
-.current-day-label {
+.current-period-label {
   position: absolute;
   top: $header-height;
   left: 0;
@@ -312,7 +312,7 @@ $work-center-left-offset: 31px;
   white-space: nowrap;
 }
 
-.current-day-line {
+.current-period-line {
   position: absolute;
   top: $header-height;
   left: 0;

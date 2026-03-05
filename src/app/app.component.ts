@@ -27,7 +27,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     // Scroll to today on load
     const el = this.rightColumn.nativeElement
-    const todayOffset = this.getCurrentDayOffset()
+    const todayOffset = this.getCurrentPeriodOffset()
     const center = todayOffset - el.clientWidth / 2
     el.scrollLeft = Math.max(0, center)
 
@@ -74,13 +74,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     return days
   }
 
-  /** Label shown on the current position indicator, varies by zoom level */
-  getCurrentDayLabel(): string {
-    // @upgrade: return 'Current hour' for Day view, 'Current day' for Week,
-    // 'Current week' for Month once timescale selection is wired up
-    return 'Current day'
-  }
-
   /**
    * Returns how many days a given ISO date string is from timelineStart.
    * Used to calculate pixel offsets for bars.
@@ -97,8 +90,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     return Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
   }
 
-  /** Pixel offset of today's date (used for the current-day indicator line) */
-  getCurrentDayOffset(): number {
+  /** Pixel offset of today's date (used for the current period indicator) */
+  getCurrentPeriodOffset(): number {
     const today = new Date()
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
     const idx = this.getDayIndex(todayStr)
@@ -117,6 +110,13 @@ export class AppComponent implements OnInit, AfterViewInit {
       case 'blocked': return 'Blocked'
       default: return status
     }
+  }
+
+  /** Label shown on the current period indicator, varies by zoom level */
+  getCurrentPeriodLabel(): string {
+    // @upgrade: return 'Current hour' for Day view, 'Current day' for Week,
+    // 'Current week' for Month once timescale selection is wired up
+    return 'Current day'
   }
 
   // --- Style helpers ----------------------------------------------------------
@@ -168,7 +168,7 @@ export class AppComponent implements OnInit, AfterViewInit {
    */
   getBarStyleObject(order: WorkOrderDocument): { [key: string]: string } {
     const startIdx = this.getDayIndex(order.data.startDate)
-    const endIdx = this.getDayIndex(order.data.endDate) + 1  // +1 to include end day
+    const endIdx = this.getDayIndex(order.data.endDate) + 1 // +1 to include end day
     const leftPx = startIdx * this.columnWidth
     const widthPx = (endIdx - startIdx) * this.columnWidth
 
