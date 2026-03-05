@@ -2,10 +2,11 @@ import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angula
 import { CommonModule } from '@angular/common'
 import { SampleDataService } from './services/sample-data.service'
 import { WorkCenterDocument, WorkOrderDocument } from './models/documents.model'
+import { NgSelectModule } from '@ng-select/ng-select'
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule],
+  imports: [CommonModule, NgSelectModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
