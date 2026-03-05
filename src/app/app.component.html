@@ -11,11 +11,15 @@
         <div class="timescale-selector-both">
           <div class="timescale-selector-left">Timescale</div>
           <div class="timescale-selector-right">
-            <select id="timescaleSelection">
-              <option>Day</option>
-              <option>Week</option>
-              <option>Month</option>
-            </select>
+            <!--
+              The active value is rendered as styled text + chevron rather than
+              a native <select> so we can match the indigo color in the design.
+              @upgrade: wire selectedTimescale to actual zoom logic
+            -->
+            <span class="timescale-value">Month</span>
+            <svg class="timescale-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none">
+              <path d="M1 1L5 5L9 1" stroke="rgba(62, 64, 219, 1)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
           </div>
         </div>
       </div>
@@ -62,7 +66,7 @@
             <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
               <span class="bar-label">{{ order.data.name }}</span>
               <span class="bar-status" [ngStyle]="getStatusBadgeStyle(order.data.status)">
-                {{ order.data.status | titlecase }}
+                {{ getStatusLabel(order.data.status) }}
               </span>
             </div>
           </ng-container>

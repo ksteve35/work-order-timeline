@@ -3,12 +3,12 @@
 $grid-border-color: rgba(230, 235, 240, 1);
 $grid-border: 1px solid $grid-border-color;
 $grid-current-time-color: rgba(212, 215, 255, 1);
+$header-height: 32px;
+$left-col-width: 240px;
 $page-font-family: "Circular-Std", sans-serif;
 $page-left-offset: 101px;
-$work-center-left-offset: 31px;
-$left-col-width: 240px;
 $row-height: 48px;
-$header-height: 32px;
+$work-center-left-offset: 31px;
 
 // --- Reset --------------------------------------------------------------------
 
@@ -94,20 +94,21 @@ $header-height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   border-radius: 0 5px 5px 0;
+  cursor: pointer;
+}
 
-  select {
-    border: none;
-    background: transparent;
-    font-family: $page-font-family;
-    font-size: 13px;
-    color: rgba(3, 9, 41, 1);
-    cursor: pointer;
-    outline: none;
-    width: 100%;
-    padding: 0 4px;
-    appearance: none;
-  }
+// The active timescale value shown in indigo to match the design
+.timescale-value {
+  font-family: $page-font-family;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(62, 64, 219, 1);
+}
+
+.timescale-chevron {
+  flex-shrink: 0;
 }
 
 // --- Two-column flex wrapper --------------------------------------------------
@@ -234,7 +235,7 @@ $header-height: 32px;
 // --- Work order bars ----------------------------------------------------------
 // Left and width are set inline (pixels) based on day index calculations.
 // The bar uses space-between so the label sits left and the badge sits right,
-// with 36px of padding-right reserving space from the bar's right edge.
+// with 8px of padding-right so the badge has breathing room from the bar edge.
 
 .work-order-bar {
   position: absolute;
@@ -245,7 +246,7 @@ $header-height: 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 36px 0 8px;
+  padding: 0 8px;
   color: rgba(3, 9, 41, 1);
   font-size: 12px;
   font-family: $page-font-family;
@@ -260,16 +261,21 @@ $header-height: 32px;
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+  margin-right: 6px;
 }
 
+// Badge has no border — background + text color only, per the design
 .bar-status {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
+  height: 16px;
   font-size: 11px;
   font-weight: 500;
-  padding: 1px 6px;
+  padding: 0 6px;
   border-radius: 10px;
   white-space: nowrap;
-  margin-left: 6px;
+  margin-right: 36px;
 }
 
 // --- Current day indicator ----------------------------------------------------

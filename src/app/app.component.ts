@@ -99,15 +99,28 @@ export class AppComponent implements OnInit, AfterViewInit {
     return idx * this.columnWidth + this.columnWidth / 2
   }
 
+  // --- Status label helpers ---------------------------------------------------
+
+  /** Human-readable label for display (e.g. "In progress" instead of "in-progress") */
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'open': return 'Open'
+      case 'in-progress': return 'In progress'
+      case 'complete': return 'Complete'
+      case 'blocked': return 'Blocked'
+      default: return status
+    }
+  }
+
   // --- Style helpers ----------------------------------------------------------
 
   getStatusBgColor(status: string): string {
     switch (status) {
-      case 'open': return '#E4FDFF'
+      case 'open': return '#F2FEFF'
       case 'in-progress': return '#EDEEFF'
       case 'complete': return '#F8FFF3'
       case 'blocked': return '#FFFCF1'
-      default: return '#E4FDFF'
+      default: return '#F2FEFF'
     }
   }
 
@@ -148,24 +161,23 @@ export class AppComponent implements OnInit, AfterViewInit {
    */
   getBarStyleObject(order: WorkOrderDocument): { [key: string]: string } {
     const startIdx = this.getDayIndex(order.data.startDate)
-    const endIdx   = this.getDayIndex(order.data.endDate) + 1  // +1 to include end day
-    const leftPx  = startIdx * this.columnWidth
+    const endIdx = this.getDayIndex(order.data.endDate) + 1  // +1 to include end day
+    const leftPx = startIdx * this.columnWidth
     const widthPx = (endIdx - startIdx) * this.columnWidth
 
     return {
       'left': `${leftPx}px`,
       'width': `${widthPx}px`,
       'background-color': this.getStatusBgColor(order.data.status),
-      'border': `1px solid ${this.getStatusBorderColor(order.data.status)}`,
+      'border': `1px solid ${this.getStatusBorderColor(order.data.status)}`
     }
   }
 
-  /** Styles for the status badge pill inside each bar */
+  /** Styles for the status badge pill inside each bar - no border, just bg + text */
   getStatusBadgeStyle(status: string): { [key: string]: string } {
     return {
       'background-color': this.getStatusBadgeColor(status),
-      'color': this.getStatusTextColor(status),
-      'border': `1px solid ${this.getStatusBorderColor(status)}`,
+      'color': this.getStatusTextColor(status)
     }
   }
 }
