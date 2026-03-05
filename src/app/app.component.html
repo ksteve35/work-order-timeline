@@ -35,43 +35,50 @@
       </div>
       <!-- RIGHT: scrollable timeline -->
       <div class="right-column" #rightColumn>
-        <!-- Header: one cell per day -->
+        <!-- Wrapper gives position:relative context spanning header + all rows -->
         <div
-          class="timeline-header-row"
-          [style.width.px]="getTimelineDays().length * columnWidth"
-          [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
-        >
-          <div class="timeline-cell" *ngFor="let day of getTimelineDays()">
-            {{ day | date: 'MMM d' }}
-          </div>
-        </div>
-        <!-- Data rows: one per work center -->
-        <div
-          class="timeline-row"
-          *ngFor="let wc of workCenters"
+          class="timeline-grid"
           [style.width.px]="getTimelineDays().length * columnWidth"
         >
-          <!--
-            Background grid lines. Pointer-events:none so clicks pass through
-            to the row itself for future create-panel functionality.
-          -->
+          <!-- Header: one cell per day -->
           <div
-            class="timeline-cells-bg"
+            class="timeline-header-row"
             [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
           >
-            <div class="timeline-cell" *ngFor="let day of getTimelineDays()"></div>
-          </div>
-          <!-- Work order bars (absolutely positioned over the row) -->
-          <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">
-            <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
-              <span class="bar-label">{{ order.data.name }}</span>
-              <span class="bar-status" [ngStyle]="getStatusBadgeStyle(order.data.status)">
-                {{ getStatusLabel(order.data.status) }}
-              </span>
+            <div class="timeline-cell" *ngFor="let day of getTimelineDays()">
+              {{ day | date: 'MMM d' }}
             </div>
-          </ng-container>
-          <!-- Current day vertical indicator -->
-          <div class="current-day-line" [style.left.px]="getCurrentDayOffset()"></div>
+          </div>
+          <!-- Data rows: one per work center -->
+          <div
+            class="timeline-row"
+            *ngFor="let wc of workCenters"
+          >
+            <!--
+              Background grid lines. Pointer-events:none so clicks pass through
+              to the row itself for future create-panel functionality.
+            -->
+            <div
+              class="timeline-cells-bg"
+              [style.gridTemplateColumns]="'repeat(' + getTimelineDays().length + ', ' + columnWidth + 'px)'"
+            >
+              <div class="timeline-cell" *ngFor="let day of getTimelineDays()"></div>
+            </div>
+            <!-- Work order bars (absolutely positioned over the row) -->
+            <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">
+              <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
+                <span class="bar-label">{{ order.data.name }}</span>
+                <span class="bar-status" [ngStyle]="getStatusBadgeStyle(order.data.status)">
+                  {{ getStatusLabel(order.data.status) }}
+                </span>
+              </div>
+            </ng-container>
+          </div>
+          <!-- Current day indicator: spans full height of header + all rows -->
+          <div class="current-day-indicator" [style.left.px]="getCurrentDayOffset()">
+            <div class="current-day-label">{{ getCurrentDayLabel() }}</div>
+            <div class="current-day-line"></div>
+          </div>
         </div>
       </div>
     </div>

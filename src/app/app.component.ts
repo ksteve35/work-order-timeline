@@ -74,6 +74,13 @@ export class AppComponent implements OnInit, AfterViewInit {
     return days
   }
 
+  /** Label shown on the current position indicator, varies by zoom level */
+  getCurrentDayLabel(): string {
+    // @upgrade: return 'Current hour' for Day view, 'Current day' for Week,
+    // 'Current week' for Month once timescale selection is wired up
+    return 'Current day'
+  }
+
   /**
    * Returns how many days a given ISO date string is from timelineStart.
    * Used to calculate pixel offsets for bars.

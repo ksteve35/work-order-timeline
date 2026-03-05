@@ -279,13 +279,44 @@ $work-center-left-offset: 31px;
 }
 
 // --- Current day indicator ----------------------------------------------------
+// A single absolutely positioned element spanning the full grid height
+// (header + all rows). Contains a label pill at the top and a line below.
+
+.timeline-grid {
+  position: relative;
+}
+
+.current-day-indicator {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.current-day-label {
+  position: absolute;
+  top: $header-height;
+  left: 0;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background-color: rgba(212, 215, 255, 1);
+  color: rgba(62, 64, 219, 1);
+  font-family: $page-font-family;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
 
 .current-day-line {
   position: absolute;
-  top: 0;
+  top: $header-height;
+  left: 0;
   width: 2px;
-  height: 100%;
+  height: calc(100% - #{$header-height});
   background-color: $grid-current-time-color;
-  pointer-events: none;
-  z-index: 2;
 }
