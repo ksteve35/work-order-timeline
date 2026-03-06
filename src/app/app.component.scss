@@ -92,17 +92,78 @@ $work-center-left-offset: 31px;
 }
 
 .timescale-selector-right {
-  width: 71px;
   background-color: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
   border-radius: 0 5px 5px 0;
   overflow: visible;
+  padding-right: 8px;
+  gap: 6.53px;
 }
 
+.timescale-chevron {
+  width: 8.47px;
+  height: 5px;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
+// ng-select overrides to match the design's indigo active value style
 .timescale-ng-select {
   width: auto;
+
+  // Hide the built-in ng-select arrow since we use our own chevron image
+  &.ng-select .ng-arrow-wrapper {
+    display: none;
+  }
+
+  &.ng-select .ng-select-container {
+    border: none;
+    box-shadow: none;
+    outline: none;
+    background: transparent;
+    min-height: 25px;
+    height: 25px;
+    cursor: pointer;
+    width: auto;
+    display: flex;
+    align-items: center;
+    user-select: none;
+  }
+
+  &.ng-select .ng-select-container .ng-value-container {
+    padding: 0 !important;
+    padding-left: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    flex: 1 !important;
+    height: 25px !important;
+    align-self: stretch !important;
+  }
+
+  &.ng-select .ng-select-container .ng-value-container .ng-value {
+    font-family: $page-font-family;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(62, 64, 219, 1);
+    white-space: nowrap;
+    line-height: 25px !important;
+  }
+
+  // Collapse the hidden search input so it doesn't push the value text around
+  &.ng-select .ng-select-container .ng-value-container .ng-input {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+    position: absolute;
+  }
+
+  &.ng-select.ng-select-focused .ng-select-container,
+  &.ng-select.ng-select-opened .ng-select-container {
+    border: none;
+    box-shadow: none;
+    outline: none;
+  }
 }
 
 // --- Two-column flex wrapper --------------------------------------------------
@@ -360,6 +421,13 @@ $work-center-left-offset: 31px;
   color: rgba(3, 9, 41, 1);
   padding: 0 38px 0 12px;
   height: 28px;
+  display: flex;
+  align-items: center;
+
+  .ng-option-label {
+    line-height: 1;
+    display: block;
+  }
 
   &:hover,
   &.ng-option-marked {
@@ -378,9 +446,26 @@ $work-center-left-offset: 31px;
   padding: 17px 0;
 }
 
-::ng-deep .timescale-ng-select .ng-select-container .ng-value-container .ng-value {
-  font-family: $page-font-family;
+::ng-deep .timescale-ng-select.ng-select .ng-select-container {
+  height: 25px !important;
+  min-height: 25px !important;
+  align-items: center !important;
+}
+
+::ng-deep .timescale-ng-select.ng-select .ng-select-container .ng-value-container {
+  padding: 0 !important;
+  padding-left: 8px !important;
+  align-self: stretch !important;
+  align-items: center !important;
+  display: flex !important;
+  flex: 1 !important;
+  height: 25px !important;
+}
+
+::ng-deep .timescale-ng-select.ng-select .ng-select-container .ng-value-container .ng-value {
+  font-family: "Circular-Std", sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: rgba(62, 64, 219, 1) !important;
+  line-height: 1 !important;
 }

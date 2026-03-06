@@ -13,14 +13,15 @@
           <div class="timescale-selector-right">
             <ng-select
               class="timescale-ng-select"
+              [items]="timescaleOptions"
               bindLabel="label"
               bindValue="value"
-              appendTo=".timescale-selector-both"
               [(ngModel)]="selectedTimescale"
               [clearable]="false"
-              [items]="timescaleOptions"
               [searchable]="false"
+              appendTo=".timescale-selector-both"
             ></ng-select>
+            <img src="/images/Down@4x.png" class="timescale-chevron" alt="" />
           </div>
         </div>
       </div>
