@@ -31,30 +31,36 @@
     <div class="timeline-body-wrapper">
       <!-- LEFT: work center labels -->
       <div class="left-column">
-        <div class="work-center-header">Work Center</div>
+        <div
+          class="work-center-header"
+          [class.work-center-header--double]="selectedTimescale !== 'Month'"
+        >
+          Work Center
+        </div>
         <div class="work-center-row" *ngFor="let wc of workCenters">
           {{ wc.data.name }}
         </div>
       </div>
       <!-- RIGHT: scrollable timeline -->
       <div class="right-column" #rightColumn>
-        <!-- Wrapper gives position:relative context spanning header + all rows -->
         <div
           class="timeline-grid"
           [class.timeline-grid--week]="selectedTimescale === 'Week'"
+          [class.timeline-grid--hour]="selectedTimescale === 'Hour'"
+          [class.timeline-grid--day]="selectedTimescale === 'Day'"
           [style.width.px]="getTotalColumns() * columnWidth"
         >
+
           <!-- WEEK VIEW: two-row header -->
           <ng-container *ngIf="selectedTimescale === 'Week'">
             <div class="timeline-header-row timeline-header-row--week-top">
-              <ng-container *ngFor="let group of getWeekGroups()">
-                <div
-                  class="timeline-cell timeline-cell--week-label"
-                  [style.width.px]="group.days.length * columnWidth"
-                >
-                  {{ group.label }}
-                </div>
-              </ng-container>
+              <div
+                class="timeline-cell timeline-cell--week-label"
+                *ngFor="let group of getWeekGroups()"
+                [style.width.px]="group.days.length * columnWidth"
+              >
+                {{ group.label }}
+              </div>
             </div>
             <div
               class="timeline-header-row"
@@ -67,42 +73,57 @@
               </ng-container>
             </div>
           </ng-container>
-          <!-- HOUR / DAY / MONTH VIEW: single-row header -->
-          <ng-container *ngIf="selectedTimescale !== 'Week'">
+
+          <!-- HOUR VIEW: two-row header -->
+          <ng-container *ngIf="selectedTimescale === 'Hour'">
+            <div class="timeline-header-row timeline-header-row--period-top">
+              <div class="timeline-cell timeline-cell--period-label">{{ getTopHeaderLabel() }}</div>
+            </div>
             <div
               class="timeline-header-row"
               [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
             >
-              <ng-container *ngIf="selectedTimescale === 'Hour'">
-                <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
-                  {{ getHourLabel(col) }}
-                </div>
-              </ng-container>
-              <ng-container *ngIf="selectedTimescale === 'Day'">
-                <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
-                  {{ getDayLabel(col) }}
-                </div>
-              </ng-container>
-              <ng-container *ngIf="selectedTimescale === 'Month'">
-                <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
-                  {{ getMonthLabel(col) }}
-                </div>
-              </ng-container>
+              <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
+                {{ getHourLabel(col) }}
+              </div>
             </div>
           </ng-container>
+
+          <!-- DAY VIEW: two-row header -->
+          <ng-container *ngIf="selectedTimescale === 'Day'">
+            <div class="timeline-header-row timeline-header-row--period-top">
+              <div class="timeline-cell timeline-cell--period-label">{{ getTopHeaderLabel() }}</div>
+            </div>
+            <div
+              class="timeline-header-row"
+              [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
+            >
+              <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
+                {{ getDayLabel(col) }}
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- MONTH VIEW: single-row header -->
+          <ng-container *ngIf="selectedTimescale === 'Month'">
+            <div
+              class="timeline-header-row"
+              [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
+            >
+              <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
+                {{ getMonthLabel(col) }}
+              </div>
+            </div>
+          </ng-container>
+
           <!-- Data rows: one per work center -->
           <div class="timeline-row" *ngFor="let wc of workCenters">
-            <!--
-              Background grid lines. Pointer-events:none so clicks pass through
-              to the row itself for future create-panel functionality.
-            -->
             <div
               class="timeline-cells-bg"
               [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
             >
               <div class="timeline-cell" *ngFor="let col of getTimelineColumns()"></div>
             </div>
-            <!-- Work order bars (absolutely positioned over the row) -->
             <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">
               <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
                 <span class="bar-label">{{ order.data.name }}</span>
@@ -112,11 +133,13 @@
               </div>
             </ng-container>
           </div>
-          <!-- Current period indicator: spans full height of header + all rows -->
+
+          <!-- Current period indicator -->
           <div class="current-period-indicator" [style.left.px]="getCurrentPeriodOffset()">
             <div class="current-period-label">{{ getCurrentPeriodLabel() }}</div>
             <div class="current-period-line"></div>
           </div>
+
         </div>
       </div>
     </div>

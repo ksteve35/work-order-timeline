@@ -108,11 +108,10 @@ $work-center-left-offset: 31px;
   pointer-events: none;
 }
 
-// ng-select overrides to match the design's indigo active value style
+// ng-select overrides
 .timescale-ng-select {
   width: auto;
 
-  // Hide the built-in ng-select arrow since we use our own chevron image
   &.ng-select .ng-arrow-wrapper {
     display: none;
   }
@@ -150,7 +149,6 @@ $work-center-left-offset: 31px;
     line-height: 25px !important;
   }
 
-  // Collapse the hidden search input so it doesn't push the value text around
   &.ng-select .ng-select-container .ng-value-container .ng-input {
     width: 0;
     padding: 0;
@@ -197,6 +195,10 @@ $work-center-left-offset: 31px;
   font-weight: 400;
 }
 
+.work-center-header--double {
+  height: calc(#{$header-height} * 2);
+}
+
 .work-center-row {
   height: $row-height;
   display: flex;
@@ -231,7 +233,7 @@ $work-center-left-offset: 31px;
   }
 }
 
-// --- Timeline header row ------------------------------------------------------
+// --- Timeline header rows -----------------------------------------------------
 
 .timeline-header-row {
   display: grid;
@@ -239,12 +241,25 @@ $work-center-left-offset: 31px;
   border-bottom: $grid-border;
   background: #fff;
 
-  // Week view top row uses flex instead of grid so each cell can have variable width
   &.timeline-header-row--week-top {
     display: flex;
     border-bottom: none;
   }
 }
+
+.timeline-header-row--period-top {
+  display: flex;
+  border-bottom: none;
+}
+
+.timeline-cell--period-label {
+  flex: 1;
+  justify-content: center;
+  border-bottom: $grid-border;
+  border-right: none;
+}
+
+// --- Timeline cells -----------------------------------------------------------
 
 .timeline-cell {
   display: flex;
@@ -261,7 +276,6 @@ $work-center-left-offset: 31px;
     border-right: none;
   }
 
-  // Week view top label cell — left-aligned, has its own bottom border
   &.timeline-cell--week-label {
     justify-content: flex-start;
     padding-left: 8px;
@@ -302,9 +316,6 @@ $work-center-left-offset: 31px;
 }
 
 // --- Work order bars ----------------------------------------------------------
-// Left and width are set inline (pixels) based on column index calculations.
-// The bar uses space-between so the label sits left and the badge sits right,
-// with 8px of padding-right so the badge has breathing room from the bar edge.
 
 .work-order-bar {
   position: absolute;
@@ -333,7 +344,6 @@ $work-center-left-offset: 31px;
   margin-right: 6px;
 }
 
-// Badge has no border — background + text color only, per the design
 .bar-status {
   display: flex;
   align-items: center;
@@ -348,8 +358,6 @@ $work-center-left-offset: 31px;
 }
 
 // --- Current period indicator -------------------------------------------------
-// A single absolutely positioned element spanning the full grid height
-// (header + all rows). Contains a label pill at the top and a line below.
 
 .timeline-grid {
   position: relative;
@@ -391,14 +399,17 @@ $work-center-left-offset: 31px;
   background-color: $grid-current-time-color;
 }
 
-// Week view has a two-row header so the indicator must clear both rows
+// Week, Hour, Day views have two-row headers so indicator must clear both rows
 .timeline-grid--week .current-period-label,
-.timeline-grid--week .current-period-line {
+.timeline-grid--week .current-period-line,
+.timeline-grid--hour .current-period-label,
+.timeline-grid--hour .current-period-line,
+.timeline-grid--day .current-period-label,
+.timeline-grid--day .current-period-line {
   top: calc(#{$header-height} * 2);
 }
 
-// --- Global ng-select dropdown override (required because appendTo="body" ----
-// teleports the panel outside the component, bypassing view encapsulation)
+// --- Global ng-select dropdown overrides -------------------------------------
 
 ::ng-deep .ng-dropdown-panel {
   z-index: 9999;
