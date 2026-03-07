@@ -17,6 +17,7 @@
               bindLabel="label"
               bindValue="value"
               [(ngModel)]="selectedTimescale"
+              (ngModelChange)="onTimescaleChange()"
               [clearable]="false"
               [searchable]="false"
               appendTo=".timescale-selector-both"

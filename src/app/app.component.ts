@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core'
+import { AfterViewInit, ChangeDetectorRef, ChangeDetectionStrategy, Component, ElementRef, NgZone, OnInit, ViewChild } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
 import { NgSelectModule } from '@ng-select/ng-select'
@@ -13,45 +13,82 @@ interface TimescaleOption {
 }
 
 interface WeekGroup {
-  label: string  // e.g. "Week 31, September, 2024"
+  label: string
   days: Date[]
+}
+
+// --- Windowing config per timescale ------------------------------------------
+// initialDays: total days in the initial window (centered on today)
+// loadDays:    days to add/remove when approaching an edge
+// bufferDays:  how close to the edge (in days) before loading more
+
+interface WindowConfig {
+  initialDays: number
+  loadDays: number
+  bufferDays: number
+}
+
+const WINDOW_CONFIG: Record<Timescale, WindowConfig> = {
+  Hour:  { initialDays: 6,   loadDays: 6,   bufferDays: 3 },
+  Day:   { initialDays: 92,  loadDays: 28,  bufferDays: 20 },
+  Week:  { initialDays: 112, loadDays: 84,  bufferDays: 35 },
+  Month: { initialDays: 730, loadDays: 360, bufferDays: 120 }
 }
 
 @Component({
   selector: 'app-root',
   imports: [CommonModule, FormsModule, NgSelectModule],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild('rightColumn') rightColumn!: ElementRef<HTMLDivElement>
+
   columnWidth: number = 114
-  timelineStart: Date = new Date(2026, 0, 1) // Jan 1 2026 (0-based)
-  timelineEnd: Date = new Date(2026, 11, 31) // Dec 31 2026 (0-based)
+  visibleStart!: Date
+  visibleEnd!: Date
   workCenters: WorkCenterDocument[] = []
   workOrders: WorkOrderDocument[] = []
   selectedTimescale: Timescale = 'Month'
+
   timescaleOptions: TimescaleOption[] = [
-    { label: 'Hour', value: 'Hour' },
-    { label: 'Day', value: 'Day' },
-    { label: 'Week', value: 'Week' },
+    { label: 'Hour',  value: 'Hour' },
+    { label: 'Day',   value: 'Day' },
+    { label: 'Week',  value: 'Week' },
     { label: 'Month', value: 'Month' }
   ]
 
-  constructor(private sampleData: SampleDataService) {}
+  // --- Column cache ----------------------------------------------------------
+  // Recomputed only when visibleStart, visibleEnd, or selectedTimescale changes
+
+  private _cachedColumns: Date[] = []
+  private _cachedWeekGroups: WeekGroup[] = []
+  private _cachedTotalColumns: number = 0
+  private _cachedDayColumns: Date[] = []
+
+  private isLoadingMore = false
+  private scrollListenerActive = true
+  private scrollTimeout: ReturnType<typeof setTimeout> | null = null
+  private scrollStopTimeout: ReturnType<typeof setTimeout> | null = null
+
+  constructor(
+    private sampleData: SampleDataService,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
+  ) {}
 
   ngOnInit(): void {
     this.workCenters = this.sampleData.getWorkCenters()
     this.workOrders = this.sampleData.getWorkOrders()
+    this.initializeRange(new Date())
   }
 
   ngAfterViewInit(): void {
-    // Scroll to today on load
-    const el = this.rightColumn.nativeElement
-    const offset = this.getCurrentPeriodOffset()
-    el.scrollLeft = Math.max(0, offset - el.clientWidth / 2)
+    this.scrollToDate(new Date(), 'center')
 
-    // Convert vertical wheel to horizontal scroll
+    const el = this.rightColumn.nativeElement
+
     el.addEventListener(
       'wheel',
       (event: WheelEvent) => {
@@ -64,36 +101,283 @@ export class AppComponent implements OnInit, AfterViewInit {
       },
       { passive: false }
     )
+
+    // Run scroll listener outside Angular zone to avoid triggering
+    // change detection on every scroll event
+    this.ngZone.runOutsideAngular(() => {
+      el.addEventListener('scroll', () => this.onScroll())
+    })
   }
 
-  // --- Data helpers -----------------------------------------------------------
-
-  getOrdersForWorkCenter(wcId: string): WorkOrderDocument[] {
-    return this.workOrders.filter(order => order.data.workCenterId === wcId)
-  }
-
-  // --- Timeline column helpers ------------------------------------------------
+  // --- Range initialization --------------------------------------------------
 
   /**
-   * Returns the list of columns for the current timescale.
-   * For Hour/Day/Month each entry is a Date representing that column.
-   * For Week, use getWeekGroups() instead.
+   * Sets visibleStart and visibleEnd centered on the given date.
+   * For Month view snaps to month boundaries.
+   * Always calls refreshColumnCache() after updating the range.
    */
-  getTimelineColumns(): Date[] {
+  initializeRange(centerDate: Date): void {
+    const config = WINDOW_CONFIG[this.selectedTimescale]
+
+    if (this.selectedTimescale === 'Month') {
+      const halfMonths = Math.round(config.initialDays / 30 / 2)
+      this.visibleStart = new Date(
+        centerDate.getFullYear(),
+        centerDate.getMonth() - halfMonths,
+        1
+      )
+      this.visibleEnd = new Date(
+        centerDate.getFullYear(),
+        centerDate.getMonth() + halfMonths + 1,
+        0
+      )
+    } else {
+      const half = Math.floor(config.initialDays / 2)
+      this.visibleStart = this.addDays(this.startOfDay(centerDate), -half)
+      this.visibleEnd = this.addDays(this.startOfDay(centerDate), half)
+    }
+
+    this.refreshColumnCache()
+  }
+
+  // --- Column cache ----------------------------------------------------------
+
+  /**
+   * Rebuilds all cached column arrays. Must be called any time visibleStart,
+   * visibleEnd, or selectedTimescale changes.
+   */
+  private refreshColumnCache(): void {
+    this._cachedDayColumns = this.buildDayColumns()
+
     switch (this.selectedTimescale) {
-      case 'Hour': return this.getHourColumns()
-      case 'Day':  return this.getDayColumns()
-      case 'Month': return this.getMonthColumns()
-      default: return this.getDayColumns()
+      case 'Hour':
+        this._cachedColumns = this.buildHourColumns()
+        break
+      case 'Day':
+        this._cachedColumns = this._cachedDayColumns
+        break
+      case 'Week':
+        this._cachedColumns = this._cachedDayColumns
+        break
+      case 'Month':
+        this._cachedColumns = this.buildMonthColumns()
+        break
+    }
+
+    this._cachedWeekGroups = this.buildWeekGroups(this._cachedDayColumns)
+    this._cachedTotalColumns = this.selectedTimescale === 'Week'
+      ? this._cachedDayColumns.length
+      : this._cachedColumns.length
+  }
+
+  // --- Timescale change -------------------------------------------------------
+
+  onTimescaleChange(): void {
+    const el = this.rightColumn.nativeElement
+
+    // Sample anchor date using current visibleStart before range is reinitialized.
+    // getDateAtPixel uses the old timescale's column math, which is still correct
+    // here since selectedTimescale hasn't been used to reinitialize yet.
+    const anchorDate = this.getDateAtPixel(el.scrollLeft)
+
+    this.initializeRange(anchorDate)
+    this.cdr.detectChanges()
+
+    setTimeout(() => this.scrollToDate(anchorDate, 'left'), 0)
+  }
+
+  // --- Infinite scroll -------------------------------------------------------
+
+  private onScroll(): void {
+    if (this.isLoadingMore || !this.scrollListenerActive) return
+
+    // Check edges with a short debounce
+    if (this.scrollTimeout) clearTimeout(this.scrollTimeout)
+    this.scrollTimeout = setTimeout(() => this.checkScrollEdges(), 150)
+
+    // Trim only after scroll has fully stopped
+    if (this.scrollStopTimeout) clearTimeout(this.scrollStopTimeout)
+    this.scrollStopTimeout = setTimeout(() => this.trimDistantColumns(), 1000)
+  }
+
+  private checkScrollEdges(): void {
+    if (this.isLoadingMore || !this.scrollListenerActive) return
+
+    const el = this.rightColumn.nativeElement
+    const config = WINDOW_CONFIG[this.selectedTimescale]
+    const bufferPx = this.daysToPixels(config.bufferDays)
+
+    if (el.scrollLeft < bufferPx) {
+      this.isLoadingMore = true
+      this.prependColumns(config.loadDays)
+      return
+    }
+
+    if (el.scrollLeft + el.clientWidth > el.scrollWidth - bufferPx) {
+      this.isLoadingMore = true
+      this.appendColumns(config.loadDays)
     }
   }
 
-  /** One column per hour across the full timeline range */
-  private getHourColumns(): Date[] {
+  /**
+   * Fired 1 second after scroll stops. Trims columns that are far outside the
+   * viewport. Because scroll momentum has fully settled by this point,
+   * adjusting scrollLeft to compensate for left-side trimming won't bounce.
+   */
+  private trimDistantColumns(): void {
+    if (this.isLoadingMore) return
+
+    const el = this.rightColumn.nativeElement
+    const config = WINDOW_CONFIG[this.selectedTimescale]
+    const trimThresholdPx = this.daysToPixels(config.loadDays) * 3
+    let didTrim = false
+
+    // Trim right end if it is far outside the viewport
+    const distanceFromRight = el.scrollWidth - (el.scrollLeft + el.clientWidth)
+    if (distanceFromRight > trimThresholdPx) {
+      const trimDays = config.loadDays
+      if (this.selectedTimescale === 'Month') {
+        const months = Math.round(trimDays / 30)
+        this.visibleEnd = new Date(
+          this.visibleEnd.getFullYear(),
+          this.visibleEnd.getMonth() - months + 1,
+          0
+        )
+      } else {
+        this.visibleEnd = this.addDays(this.visibleEnd, -trimDays)
+      }
+      didTrim = true
+    }
+
+    // Trim left end if it is far outside the viewport
+    const distanceFromLeft = el.scrollLeft
+    if (distanceFromLeft > trimThresholdPx) {
+      const trimDays = config.loadDays
+      if (this.selectedTimescale === 'Month') {
+        const months = Math.round(trimDays / 30)
+        this.visibleStart = new Date(
+          this.visibleStart.getFullYear(),
+          this.visibleStart.getMonth() + months,
+          1
+        )
+      } else {
+        this.visibleStart = this.addDays(this.visibleStart, trimDays)
+      }
+
+      // Trimming the left shifts all column positions so we must correct
+      // scrollLeft — safe here because scroll has fully stopped
+      this.scrollListenerActive = false
+      const trimPx = this.daysToPixels(trimDays)
+      didTrim = true
+      this.refreshColumnCache()
+
+      setTimeout(() => {
+        this.ngZone.run(() => {
+          this.cdr.detectChanges()
+          el.scrollLeft -= trimPx
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              this.scrollListenerActive = true
+            })
+          })
+        })
+      }, 0)
+      return
+    }
+
+    if (didTrim) {
+      this.refreshColumnCache()
+      setTimeout(() => {
+        this.ngZone.run(() => this.cdr.detectChanges())
+      }, 0)
+    }
+  }
+
+  /**
+   * Adds columns to the left edge only — no trimming.
+   * Trimming is deferred to trimDistantColumns after scroll stops.
+   */
+  private prependColumns(days: number): void {
+    const el = this.rightColumn.nativeElement
+    const addedPx = this.daysToPixels(days)
+
+    if (this.selectedTimescale === 'Month') {
+      const months = Math.round(days / 30)
+      this.visibleStart = new Date(
+        this.visibleStart.getFullYear(),
+        this.visibleStart.getMonth() - months,
+        1
+      )
+    } else {
+      this.visibleStart = this.addDays(this.visibleStart, -days)
+    }
+
+    this.scrollListenerActive = false
+    this.refreshColumnCache()
+
+    // Defer render to next macrotask so browser can finish current scroll frame
+    setTimeout(() => {
+      this.ngZone.run(() => {
+        this.cdr.detectChanges()
+        el.scrollLeft += addedPx
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            this.scrollListenerActive = true
+            this.isLoadingMore = false
+          })
+        })
+      })
+    }, 0)
+  }
+
+  /**
+   * Adds columns to the right edge only — no trimming, no scrollLeft adjustment.
+   * Trimming is deferred to trimDistantColumns after scroll stops.
+   */
+  private appendColumns(days: number): void {
+    if (this.selectedTimescale === 'Month') {
+      const months = Math.round(days / 30)
+      this.visibleEnd = new Date(
+        this.visibleEnd.getFullYear(),
+        this.visibleEnd.getMonth() + months + 1,
+        0
+      )
+    } else {
+      this.visibleEnd = this.addDays(this.visibleEnd, days)
+    }
+
+    this.refreshColumnCache()
+
+    // Defer render to next macrotask so browser can finish current scroll frame
+    setTimeout(() => {
+      this.ngZone.run(() => {
+        this.cdr.detectChanges()
+        this.isLoadingMore = false
+      })
+    }, 0)
+  }
+
+  // --- Column accessors (use cache) ------------------------------------------
+
+  getTimelineColumns(): Date[] {
+    return this._cachedColumns
+  }
+
+  getWeekGroups(): WeekGroup[] {
+    return this._cachedWeekGroups
+  }
+
+  getTotalColumns(): number {
+    return this._cachedTotalColumns
+  }
+
+  // --- Column builders (called only by refreshColumnCache) -------------------
+
+  private buildHourColumns(): Date[] {
     const hours: Date[] = []
-    const current = new Date(this.timelineStart)
+    const current = new Date(this.visibleStart)
     current.setHours(0, 0, 0, 0)
-    const end = new Date(this.timelineEnd)
+    const end = new Date(this.visibleEnd)
     end.setHours(23, 0, 0, 0)
     while (current <= end) {
       hours.push(new Date(current))
@@ -102,19 +386,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     return hours
   }
 
-  /** One column per day across the full timeline range */
-  private getDayColumns(): Date[] {
+  private buildDayColumns(): Date[] {
     const days: Date[] = []
-    const current = new Date(
-      this.timelineStart.getFullYear(),
-      this.timelineStart.getMonth(),
-      this.timelineStart.getDate()
-    )
-    const end = new Date(
-      this.timelineEnd.getFullYear(),
-      this.timelineEnd.getMonth(),
-      this.timelineEnd.getDate()
-    )
+    const current = this.startOfDay(this.visibleStart)
+    const end = this.startOfDay(this.visibleEnd)
     while (current <= end) {
       days.push(new Date(current))
       current.setDate(current.getDate() + 1)
@@ -122,19 +397,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     return days
   }
 
-  /** One column per month across the full timeline range */
-  private getMonthColumns(): Date[] {
+  private buildMonthColumns(): Date[] {
     const months: Date[] = []
-    const current = new Date(
-      this.timelineStart.getFullYear(),
-      this.timelineStart.getMonth(),
-      1
-    )
-    const end = new Date(
-      this.timelineEnd.getFullYear(),
-      this.timelineEnd.getMonth(),
-      1
-    )
+    const current = new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth(), 1)
+    const end = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth(), 1)
     while (current <= end) {
       months.push(new Date(current))
       current.setMonth(current.getMonth() + 1)
@@ -142,28 +408,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     return months
   }
 
-  /**
-   * Returns week groups for the Week view two-row header.
-   * Each group has a label and the array of days in that week.
-   */
-  getWeekGroups(): WeekGroup[] {
-    const days = this.getDayColumns()
+  private buildWeekGroups(days: Date[]): WeekGroup[] {
     const groups: WeekGroup[] = []
     let current: WeekGroup | null = null
 
     for (const day of days) {
-      // ISO week: week starts on Monday
-      const dayOfWeek = day.getDay()  // 0=Sun, 1=Mon...
-      const isMonday = dayOfWeek === 1
-
+      const isMonday = day.getDay() === 1
       if (!current || isMonday) {
         if (current) groups.push(current)
         const weekNum = this.getISOWeekNumber(day)
         const monthName = day.toLocaleString('default', { month: 'long' })
-        current = {
-          label: `Week ${weekNum}, ${monthName}, ${day.getFullYear()}`,
-          days: []
-        }
+        current = { label: `Week ${weekNum}, ${monthName}, ${day.getFullYear()}`, days: [] }
       }
       current.days.push(day)
     }
@@ -171,7 +426,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     return groups
   }
 
-  /** Returns the ISO week number for a given date */
   private getISOWeekNumber(date: Date): number {
     const d = new Date(date)
     d.setHours(0, 0, 0, 0)
@@ -180,15 +434,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7)
   }
 
-  /** Total number of columns (used for timeline-grid width calculation) */
-  getTotalColumns(): number {
-    if (this.selectedTimescale === 'Week') {
-      return this.getDayColumns().length
-    }
-    return this.getTimelineColumns().length
-  }
-
-  // --- Column header label helpers --------------------------------------------
+  // --- Column header labels ---------------------------------------------------
 
   getHourLabel(date: Date): string {
     const h = date.getHours()
@@ -209,8 +455,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   // --- Bar positioning --------------------------------------------------------
 
   /**
-   * Returns the pixel offset of a given date from the start of the timeline.
-   * Accounts for zoom level — each column represents a different time unit.
+   * Returns the column index of a date relative to visibleStart.
+   * Used to calculate bar left/width in pixels.
    */
   getColumnIndex(dateStr: string): number {
     const [year, month, day] = dateStr.split('-').map(Number)
@@ -218,28 +464,15 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     switch (this.selectedTimescale) {
       case 'Hour':
-        // Each column is one hour; bars snap to day boundary
-        return Math.floor((date.getTime() - this.timelineStart.getTime()) / (1000 * 60 * 60 * 24)) * 24
+        return this.daysBetween(this.visibleStart, date) * 24
 
       case 'Day':
-        return Math.floor((date.getTime() - new Date(
-          this.timelineStart.getFullYear(),
-          this.timelineStart.getMonth(),
-          this.timelineStart.getDate()
-        ).getTime()) / (1000 * 60 * 60 * 24))
-
       case 'Week':
-        // Same as Day — columns are still individual days in week view
-        return Math.floor((date.getTime() - new Date(
-          this.timelineStart.getFullYear(),
-          this.timelineStart.getMonth(),
-          this.timelineStart.getDate()
-        ).getTime()) / (1000 * 60 * 60 * 24))
+        return this.daysBetween(this.visibleStart, date)
 
       case 'Month': {
-        // Each column is one month
-        const startYear = this.timelineStart.getFullYear()
-        const startMonth = this.timelineStart.getMonth()
+        const startYear = this.visibleStart.getFullYear()
+        const startMonth = this.visibleStart.getMonth()
         return (date.getFullYear() - startYear) * 12 + (date.getMonth() - startMonth)
       }
     }
@@ -261,7 +494,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   // --- Current period indicator -----------------------------------------------
 
-  /** Pixel offset of the current period indicator line */
   getCurrentPeriodOffset(): number {
     const today = new Date()
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
@@ -269,7 +501,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     return idx * this.columnWidth + this.columnWidth / 2
   }
 
-  /** Label shown on the current period indicator pill, varies by zoom level */
   getCurrentPeriodLabel(): string {
     switch (this.selectedTimescale) {
       case 'Hour':  return 'Current hour'
@@ -279,9 +510,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
+  // --- Data helpers -----------------------------------------------------------
+
+  getOrdersForWorkCenter(wcId: string): WorkOrderDocument[] {
+    return this.workOrders.filter(order => order.data.workCenterId === wcId)
+  }
+
   // --- Status label helpers ---------------------------------------------------
 
-  /** Human-readable label for display (e.g. "In progress" instead of "in-progress") */
   getStatusLabel(status: string): string {
     switch (status) {
       case 'open': return 'Open'
@@ -334,11 +570,78 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  /** Styles for the status badge pill inside each bar - no border, just bg + text */
   getStatusBadgeStyle(status: string): { [key: string]: string } {
     return {
       'background-color': this.getStatusBadgeColor(status),
       'color': this.getStatusTextColor(status)
     }
+  }
+
+  // --- Date utility helpers ---------------------------------------------------
+
+  private startOfDay(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  }
+
+  private addDays(date: Date, days: number): Date {
+    const result = new Date(date)
+    result.setDate(result.getDate() + days)
+    return result
+  }
+
+  /** Returns the number of whole days between two dates */
+  private daysBetween(from: Date, to: Date): number {
+    const fromMs = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate())
+    const toMs = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate())
+    return Math.floor((toMs - fromMs) / (1000 * 60 * 60 * 24))
+  }
+
+  /** Converts a number of days to pixels based on current timescale column width */
+  private daysToPixels(days: number): number {
+    switch (this.selectedTimescale) {
+      case 'Hour':  return days * 24 * this.columnWidth
+      case 'Day':   return days * this.columnWidth
+      case 'Week':  return days * this.columnWidth
+      case 'Month': return (days / 30) * this.columnWidth
+    }
+  }
+
+  /**
+   * Returns the date represented by a given pixel offset from the left of the grid.
+   * Must be called before visibleStart changes as it uses visibleStart as the anchor.
+   */
+  private getDateAtPixel(px: number): Date {
+    switch (this.selectedTimescale) {
+      case 'Hour': {
+        const hours = Math.floor(px / this.columnWidth)
+        const result = new Date(this.visibleStart)
+        result.setHours(result.getHours() + hours)
+        return result
+      }
+      case 'Day':
+      case 'Week': {
+        const days = Math.floor(px / this.columnWidth)
+        return this.addDays(this.startOfDay(this.visibleStart), days)
+      }
+      case 'Month': {
+        // Clamp months to prevent overflow on large scrollLeft values
+        const rawMonths = Math.floor(px / this.columnWidth)
+        const clampedMonths = Math.min(rawMonths, 1200)  // cap at 100 years
+        return new Date(
+          this.visibleStart.getFullYear(),
+          this.visibleStart.getMonth() + clampedMonths,
+          1
+        )
+      }
+    }
+  }
+
+  /** Scrolls the timeline so that the given date is at the left edge or centered */
+  private scrollToDate(date: Date, align: 'left' | 'center'): void {
+    const el = this.rightColumn.nativeElement
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    const idx = this.getColumnIndex(dateStr)
+    const px = idx * this.columnWidth
+    el.scrollLeft = align === 'center' ? Math.max(0, px - el.clientWidth / 2) : Math.max(0, px)
   }
 }
