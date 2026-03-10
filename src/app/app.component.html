@@ -1,10 +1,8 @@
 <div class="page-content">
-  <!-- Logo -->
   <div class="naologic-logo-container">
     <img src="/images/NaologicLogo.png" alt="Naologic Logo" class="naologic-logo" />
   </div>
   <div class="timeline-container">
-    <!-- Page header and timescale selector -->
     <div class="timeline-header">
       <div class="page-title">Work Orders</div>
       <div class="timescale-selector">
@@ -16,8 +14,8 @@
               [items]="timescaleOptions"
               bindLabel="label"
               bindValue="value"
-              [(ngModel)]="selectedTimescale"
-              (ngModelChange)="onTimescaleChange()"
+              [ngModel]="selectedTimescale"
+              (ngModelChange)="onTimescaleChange($event)"
               [clearable]="false"
               [searchable]="false"
               appendTo=".timescale-selector-both"
@@ -27,9 +25,8 @@
         </div>
       </div>
     </div>
-    <!-- TIMELINE BODY -->
+
     <div class="timeline-body-wrapper">
-      <!-- LEFT: work center labels -->
       <div class="left-column">
         <div
           class="work-center-header"
@@ -37,94 +34,92 @@
         >
           Work Center
         </div>
-        <div class="work-center-row" *ngFor="let wc of workCenters">
+        <div class="work-center-row" *ngFor="let wc of workCenters; trackBy: trackByWcId">
           {{ wc.data.name }}
         </div>
       </div>
-      <!-- RIGHT: scrollable timeline -->
+
       <div class="right-column" #rightColumn>
         <div
           class="timeline-grid"
           [class.timeline-grid--week]="selectedTimescale === 'Week'"
           [class.timeline-grid--hour]="selectedTimescale === 'Hour'"
           [class.timeline-grid--day]="selectedTimescale === 'Day'"
-          [style.width.px]="getTotalColumns() * columnWidth"
+          [style.width.px]="totalColumns * columnWidth"
         >
 
-          <!-- WEEK VIEW: two-row header -->
+          <!-- WEEK: two-row header -->
           <ng-container *ngIf="selectedTimescale === 'Week'">
             <div class="timeline-header-row timeline-header-row--week-top">
               <div
                 class="timeline-cell timeline-cell--week-label"
-                *ngFor="let group of getWeekGroups()"
+                *ngFor="let group of weekGroups; trackBy: trackByIndex"
                 [style.width.px]="group.days.length * columnWidth"
-              >
-                {{ group.label }}
-              </div>
+              >{{ group.label }}</div>
             </div>
             <div
               class="timeline-header-row"
-              [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
+              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
             >
-              <ng-container *ngFor="let group of getWeekGroups()">
-                <div class="timeline-cell" *ngFor="let day of group.days">
+              <ng-container *ngFor="let group of weekGroups; trackBy: trackByIndex">
+                <div class="timeline-cell" *ngFor="let day of group.days; trackBy: trackByDate">
                   {{ getDayLabel(day) }}
                 </div>
               </ng-container>
             </div>
           </ng-container>
 
-          <!-- HOUR VIEW: two-row header -->
+          <!-- HOUR: two-row header -->
           <ng-container *ngIf="selectedTimescale === 'Hour'">
             <div class="timeline-header-row timeline-header-row--period-top">
-              <div class="timeline-cell timeline-cell--period-label">{{ getTopHeaderLabel() }}</div>
+              <div class="timeline-cell timeline-cell--period-label">{{ topHeaderLabel }}</div>
             </div>
             <div
               class="timeline-header-row"
-              [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
+              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
             >
-              <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
+              <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
                 {{ getHourLabel(col) }}
               </div>
             </div>
           </ng-container>
 
-          <!-- DAY VIEW: two-row header -->
+          <!-- DAY: two-row header -->
           <ng-container *ngIf="selectedTimescale === 'Day'">
             <div class="timeline-header-row timeline-header-row--period-top">
-              <div class="timeline-cell timeline-cell--period-label">{{ getTopHeaderLabel() }}</div>
+              <div class="timeline-cell timeline-cell--period-label">{{ topHeaderLabel }}</div>
             </div>
             <div
               class="timeline-header-row"
-              [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
+              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
             >
-              <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
+              <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
                 {{ getDayLabel(col) }}
               </div>
             </div>
           </ng-container>
 
-          <!-- MONTH VIEW: single-row header -->
+          <!-- MONTH: single-row header -->
           <ng-container *ngIf="selectedTimescale === 'Month'">
             <div
               class="timeline-header-row"
-              [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
+              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
             >
-              <div class="timeline-cell" *ngFor="let col of getTimelineColumns()">
+              <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
                 {{ getMonthLabel(col) }}
               </div>
             </div>
           </ng-container>
 
-          <!-- Data rows: one per work center -->
-          <div class="timeline-row" *ngFor="let wc of workCenters">
+          <!-- Data rows -->
+          <div class="timeline-row" *ngFor="let wc of workCenters; trackBy: trackByWcId">
             <div
               class="timeline-cells-bg"
-              [style.gridTemplateColumns]="'repeat(' + getTotalColumns() + ', ' + columnWidth + 'px)'"
+              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
             >
-              <div class="timeline-cell" *ngFor="let col of getTimelineColumns()"></div>
+              <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate"></div>
             </div>
-            <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId)">
+            <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId); trackBy: trackByOrderId">
               <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
                 <span class="bar-label">{{ order.data.name }}</span>
                 <span class="bar-status" [ngStyle]="getStatusBadgeStyle(order.data.status)">

@@ -1,4 +1,7 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, NgZone, OnInit, ViewChild } from '@angular/core'
+import {
+  AfterViewInit, ChangeDetectorRef, Component,
+  ElementRef, NgZone, OnInit, ViewChild
+} from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
 import { NgSelectModule } from '@ng-select/ng-select'
@@ -7,24 +10,12 @@ import { WorkCenterDocument, WorkOrderDocument } from './models/documents.model'
 
 type Timescale = 'Hour' | 'Day' | 'Week' | 'Month'
 
-interface TimescaleOption {
-  label: string
-  value: Timescale
-}
-
-interface WeekGroup {
-  label: string
-  days: Date[]
-}
-
-interface WindowConfig {
-  initialDays: number
-  loadDays: number
-  bufferDays: number
-}
+interface TimescaleOption { label: string; value: Timescale }
+interface WeekGroup { label: string; days: Date[] }
+interface WindowConfig { initialDays: number; loadDays: number; bufferDays: number }
 
 const WINDOW_CONFIG: Record<Timescale, WindowConfig> = {
-  Hour:  { initialDays: 6,   loadDays: 6,   bufferDays: 3 },
+  Hour:  { initialDays: 3,   loadDays: 2,   bufferDays: 1 },
   Day:   { initialDays: 92,  loadDays: 28,  bufferDays: 20 },
   Week:  { initialDays: 112, loadDays: 84,  bufferDays: 35 },
   Month: { initialDays: 730, loadDays: 360, bufferDays: 120 }
@@ -34,13 +25,12 @@ const WINDOW_CONFIG: Record<Timescale, WindowConfig> = {
   selector: 'app-root',
   imports: [CommonModule, FormsModule, NgSelectModule],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild('rightColumn') rightColumn!: ElementRef<HTMLDivElement>
 
-  columnWidth: number = 114
+  columnWidth = 114
   visibleStart!: Date
   visibleEnd!: Date
   workCenters: WorkCenterDocument[] = []
@@ -48,20 +38,25 @@ export class AppComponent implements OnInit, AfterViewInit {
   selectedTimescale: Timescale = 'Month'
 
   timescaleOptions: TimescaleOption[] = [
-    { label: 'Hour',  value: 'Hour' },
-    { label: 'Day',   value: 'Day' },
-    { label: 'Week',  value: 'Week' },
+    { label: 'Hour',  value: 'Hour'  },
+    { label: 'Day',   value: 'Day'   },
+    { label: 'Week',  value: 'Week'  },
     { label: 'Month', value: 'Month' }
   ]
 
-  private _cachedColumns: Date[] = []
-  private _cachedWeekGroups: WeekGroup[] = []
-  private _cachedTotalColumns: number = 0
+  // ── Public properties the template reads directly ──────────────────────────
+  timelineColumns: Date[]  = []
+  weekGroups: WeekGroup[]  = []
+  totalColumns: number     = 0
+  topHeaderLabel: string   = ''
+
+  // ── Internal cache ─────────────────────────────────────────────────────────
   private _cachedDayColumns: Date[] = []
 
-  private isLoadingMore = false
+  // ── Scroll state ───────────────────────────────────────────────────────────
+  private isLoadingMore        = false
   private scrollListenerActive = true
-  private scrollTimeout: ReturnType<typeof setTimeout> | null = null
+  private scrollTimeout:     ReturnType<typeof setTimeout> | null = null
   private scrollStopTimeout: ReturnType<typeof setTimeout> | null = null
 
   constructor(
@@ -72,7 +67,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.workCenters = this.sampleData.getWorkCenters()
-    this.workOrders = this.sampleData.getWorkOrders()
+    this.workOrders  = this.sampleData.getWorkOrders()
     this.initializeRange(new Date())
   }
 
@@ -81,336 +76,294 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     const el = this.rightColumn.nativeElement
 
-    el.addEventListener(
-      'wheel',
-      (event: WheelEvent) => {
-        if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
-          if (el.scrollWidth > el.clientWidth) {
-            event.preventDefault()
-            el.scrollLeft += event.deltaY
-          }
-        }
-      },
-      { passive: false }
-    )
+    el.addEventListener('wheel', (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && el.scrollWidth > el.clientWidth) {
+        e.preventDefault()
+        el.scrollLeft += e.deltaY
+      }
+    }, { passive: false })
 
     this.ngZone.runOutsideAngular(() => {
       el.addEventListener('scroll', () => this.onScroll())
     })
   }
 
-  // --- Range initialization --------------------------------------------------
+  // ── Range init ─────────────────────────────────────────────────────────────
 
   initializeRange(centerDate: Date): void {
-    const config = WINDOW_CONFIG[this.selectedTimescale]
+    const cfg = WINDOW_CONFIG[this.selectedTimescale]
 
     if (this.selectedTimescale === 'Month') {
-      const halfMonths = Math.round(config.initialDays / 30 / 2)
-      this.visibleStart = new Date(
-        centerDate.getFullYear(),
-        centerDate.getMonth() - halfMonths,
-        1
-      )
-      this.visibleEnd = new Date(
-        centerDate.getFullYear(),
-        centerDate.getMonth() + halfMonths + 1,
-        0
-      )
+      const half = Math.round(cfg.initialDays / 30 / 2)
+      this.visibleStart = new Date(centerDate.getFullYear(), centerDate.getMonth() - half, 1)
+      this.visibleEnd   = new Date(centerDate.getFullYear(), centerDate.getMonth() + half + 1, 0)
     } else {
-      const half = Math.floor(config.initialDays / 2)
+      const half = Math.floor(cfg.initialDays / 2)
       this.visibleStart = this.addDays(this.startOfDay(centerDate), -half)
-      this.visibleEnd = this.addDays(this.startOfDay(centerDate), half)
+      this.visibleEnd   = this.addDays(this.startOfDay(centerDate),  half)
     }
 
     this.refreshColumnCache()
   }
 
-  // --- Column cache ----------------------------------------------------------
+  // ── Column cache ───────────────────────────────────────────────────────────
 
   private refreshColumnCache(): void {
     this._cachedDayColumns = this.buildDayColumns()
 
+    let cols: Date[]
     switch (this.selectedTimescale) {
-      case 'Hour':
-        this._cachedColumns = this.buildHourColumns()
-        break
-      case 'Day':
-        this._cachedColumns = this._cachedDayColumns
-        break
-      case 'Week':
-        this._cachedColumns = this._cachedDayColumns
-        break
-      case 'Month':
-        this._cachedColumns = this.buildMonthColumns()
-        break
+      case 'Hour':  cols = this.buildHourColumns();  break
+      case 'Day':   cols = this._cachedDayColumns;   break
+      case 'Week':  cols = this._cachedDayColumns;   break
+      case 'Month': cols = this.buildMonthColumns(); break
     }
 
-    this._cachedWeekGroups = this.buildWeekGroups(this._cachedDayColumns)
-    this._cachedTotalColumns = this.selectedTimescale === 'Week'
-      ? this._cachedDayColumns.length
-      : this._cachedColumns.length
+    this.timelineColumns = cols
+    this.weekGroups      = this.buildWeekGroups(this._cachedDayColumns)
+    this.totalColumns    = this.selectedTimescale === 'Week'
+                           ? this._cachedDayColumns.length
+                           : cols.length
+    this.topHeaderLabel  = this.buildTopHeaderLabel()
   }
 
-  // --- Column accessors ------------------------------------------------------
-
-  getTimelineColumns(): Date[] {
-    return this._cachedColumns
+  private buildTopHeaderLabel(): string {
+    if (!this.visibleStart || !this.visibleEnd) return ''
+    const mid = new Date((this.visibleStart.getTime() + this.visibleEnd.getTime()) / 2)
+    if (this.selectedTimescale === 'Hour') {
+      return mid.toLocaleString('default', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    }
+    if (this.selectedTimescale === 'Day') {
+      return mid.toLocaleString('default', { month: 'long', year: 'numeric' })
+    }
+    return ''
   }
 
-  getWeekGroups(): WeekGroup[] {
-    return this._cachedWeekGroups
-  }
+  // ── Timescale change ───────────────────────────────────────────────────────
 
-  getTotalColumns(): number {
-    return this._cachedTotalColumns
-  }
-
-  // --- Timescale change -------------------------------------------------------
-
-  onTimescaleChange(): void {
-    const el = this.rightColumn.nativeElement
+  onTimescaleChange(newTimescale: Timescale): void {
+    const el         = this.rightColumn.nativeElement
     const anchorDate = this.getDateAtPixel(el.scrollLeft)
 
-    this.initializeRange(anchorDate)
-    this.cdr.detectChanges()
+    this.scrollListenerActive = false
+    this.isLoadingMore = true
 
-    setTimeout(() => this.scrollToDate(anchorDate, 'left'), 0)
+    this.selectedTimescale = newTimescale
+    this.initializeRange(anchorDate)
+
+    setTimeout(() => {
+      this.scrollToDate(anchorDate, 'left')
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        this.isLoadingMore = false
+        this.scrollListenerActive = true
+        this.ngZone.run(() => this.checkScrollEdges())
+      }))
+    }, 0)
   }
 
-  // --- Infinite scroll -------------------------------------------------------
+  // ── Infinite scroll ────────────────────────────────────────────────────────
 
   private onScroll(): void {
     if (this.isLoadingMore || !this.scrollListenerActive) return
 
     if (this.scrollTimeout) clearTimeout(this.scrollTimeout)
-    this.scrollTimeout = setTimeout(() => this.checkScrollEdges(), 150)
-
-    if (this.scrollStopTimeout) clearTimeout(this.scrollStopTimeout)
-    this.scrollStopTimeout = setTimeout(() => this.trimDistantColumns(), 1000)
+    this.scrollTimeout = setTimeout(() => {
+      this.ngZone.run(() => this.checkScrollEdges())
+    }, 150)
   }
 
   private checkScrollEdges(): void {
     if (this.isLoadingMore || !this.scrollListenerActive) return
 
-    const el = this.rightColumn.nativeElement
-    const config = WINDOW_CONFIG[this.selectedTimescale]
-    const bufferPx = this.daysToPixels(config.bufferDays)
+    const el       = this.rightColumn.nativeElement
+    const cfg      = WINDOW_CONFIG[this.selectedTimescale]
+    const bufferPx = this.daysToPixels(cfg.bufferDays)
 
     if (el.scrollLeft < bufferPx) {
       this.isLoadingMore = true
-      this.prependColumns(config.loadDays)
+      this.scrollListenerActive = false
+      this.prependColumns(cfg.loadDays)
       return
     }
-
     if (el.scrollLeft + el.clientWidth > el.scrollWidth - bufferPx) {
       this.isLoadingMore = true
-      this.appendColumns(config.loadDays)
-    }
-  }
-
-  private trimDistantColumns(): void {
-    if (this.isLoadingMore) return
-
-    const el = this.rightColumn.nativeElement
-    const config = WINDOW_CONFIG[this.selectedTimescale]
-    const trimThresholdPx = this.daysToPixels(config.loadDays) * 3
-    let didTrim = false
-
-    const distanceFromRight = el.scrollWidth - (el.scrollLeft + el.clientWidth)
-    if (distanceFromRight > trimThresholdPx) {
-      const trimDays = config.loadDays
-      if (this.selectedTimescale === 'Month') {
-        const months = Math.round(trimDays / 30)
-        this.visibleEnd = new Date(
-          this.visibleEnd.getFullYear(),
-          this.visibleEnd.getMonth() - months + 1,
-          0
-        )
-      } else {
-        this.visibleEnd = this.addDays(this.visibleEnd, -trimDays)
-      }
-      didTrim = true
-    }
-
-    const distanceFromLeft = el.scrollLeft
-    if (distanceFromLeft > trimThresholdPx) {
-      const trimDays = config.loadDays
-      if (this.selectedTimescale === 'Month') {
-        const months = Math.round(trimDays / 30)
-        this.visibleStart = new Date(
-          this.visibleStart.getFullYear(),
-          this.visibleStart.getMonth() + months,
-          1
-        )
-      } else {
-        this.visibleStart = this.addDays(this.visibleStart, trimDays)
-      }
-
       this.scrollListenerActive = false
-      const trimPx = this.daysToPixels(trimDays)
-      didTrim = true
-      this.refreshColumnCache()
-
-      setTimeout(() => {
-        this.ngZone.run(() => {
-          this.cdr.detectChanges()
-          el.scrollLeft -= trimPx
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              this.scrollListenerActive = true
-            })
-          })
-        })
-      }, 0)
-      return
-    }
-
-    if (didTrim) {
-      this.refreshColumnCache()
-      setTimeout(() => {
-        this.ngZone.run(() => this.cdr.detectChanges())
-      }, 0)
+      this.appendColumns(cfg.loadDays)
     }
   }
 
   private prependColumns(days: number): void {
-    const el = this.rightColumn.nativeElement
+    const el      = this.rightColumn.nativeElement
     const addedPx = this.daysToPixels(days)
 
     if (this.selectedTimescale === 'Month') {
-      const months = Math.round(days / 30)
-      this.visibleStart = new Date(
-        this.visibleStart.getFullYear(),
-        this.visibleStart.getMonth() - months,
-        1
-      )
+      const m = Math.round(days / 30)
+      this.visibleStart = new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth() - m, 1)
     } else {
       this.visibleStart = this.addDays(this.visibleStart, -days)
     }
 
-    this.scrollListenerActive = false
     this.refreshColumnCache()
+    this.cdr.detectChanges()
 
-    setTimeout(() => {
-      this.ngZone.run(() => {
-        this.cdr.detectChanges()
-        el.scrollLeft += addedPx
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            this.scrollListenerActive = true
-            this.isLoadingMore = false
-          })
-        })
+    requestAnimationFrame(() => {
+      el.scrollLeft += addedPx
+      requestAnimationFrame(() => {
+        this.scrollListenerActive = true
+        this.isLoadingMore = false
+        this.ngZone.run(() => this.checkScrollEdges())
+        // Safety net: re-check after a short delay in case inertia
+        // stopped during the lock and the rAF check came too early
+        setTimeout(() => {
+          if (!this.isLoadingMore && this.scrollListenerActive) {
+            this.ngZone.run(() => this.checkScrollEdges())
+          }
+        }, 250)
       })
-    }, 0)
+    })
   }
 
   private appendColumns(days: number): void {
     if (this.selectedTimescale === 'Month') {
-      const months = Math.round(days / 30)
-      this.visibleEnd = new Date(
-        this.visibleEnd.getFullYear(),
-        this.visibleEnd.getMonth() + months + 1,
-        0
-      )
+      const m = Math.round(days / 30)
+      this.visibleEnd = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth() + m + 1, 0)
     } else {
       this.visibleEnd = this.addDays(this.visibleEnd, days)
     }
 
     this.refreshColumnCache()
+    this.cdr.detectChanges()
 
-    setTimeout(() => {
-      this.ngZone.run(() => {
-        this.cdr.detectChanges()
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.scrollListenerActive = true
         this.isLoadingMore = false
+        this.ngZone.run(() => this.checkScrollEdges())
+        // Safety net: same reasoning as prependColumns
+        setTimeout(() => {
+          if (!this.isLoadingMore && this.scrollListenerActive) {
+            this.ngZone.run(() => this.checkScrollEdges())
+          }
+        }, 250)
       })
-    }, 0)
+    })
   }
 
-  // --- Column builders -------------------------------------------------------
+  // @upgrade - Timeline top row rendering issues for Day and Hour views
+  private trimDistantColumns(): void {
+    // if (this.isLoadingMore) return
+
+    // const el          = this.rightColumn.nativeElement
+    // const cfg         = WINDOW_CONFIG[this.selectedTimescale]
+    // // Only trim if the off-screen content is at least 4x the load amount
+    // const thresholdPx = this.daysToPixels(cfg.loadDays) * 4
+    // let   didTrim     = false
+
+    // const fromRight = el.scrollWidth - (el.scrollLeft + el.clientWidth)
+    // if (fromRight > thresholdPx) {
+    //   const td = cfg.loadDays
+    //   if (this.selectedTimescale === 'Month') {
+    //     const m = Math.round(td / 30)
+    //     this.visibleEnd = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth() - m + 1, 0)
+    //   } else {
+    //     this.visibleEnd = this.addDays(this.visibleEnd, -td)
+    //   }
+    //   didTrim = true
+    // }
+
+    // const fromLeft = el.scrollLeft
+    // if (fromLeft > thresholdPx) {
+    //   const td = cfg.loadDays
+    //   if (this.selectedTimescale === 'Month') {
+    //     const m = Math.round(td / 30)
+    //     this.visibleStart = new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth() + m, 1)
+    //   } else {
+    //     this.visibleStart = this.addDays(this.visibleStart, td)
+    //   }
+
+    //   this.scrollListenerActive = false
+    //   const trimPx = this.daysToPixels(td)
+    //   didTrim = true
+    //   this.refreshColumnCache()
+    //   this.cdr.detectChanges()
+
+    //   setTimeout(() => {
+    //     el.scrollLeft -= trimPx
+    //     requestAnimationFrame(() => requestAnimationFrame(() => {
+    //       this.scrollListenerActive = true
+    //     }))
+    //   }, 0)
+    //   return
+    // }
+
+    // if (didTrim) {
+    //   this.refreshColumnCache()
+    //   this.cdr.detectChanges()
+    // }
+  }
+
+  // ── Column builders ────────────────────────────────────────────────────────
 
   private buildHourColumns(): Date[] {
     const hours: Date[] = []
-    const current = new Date(this.visibleStart)
-    current.setHours(0, 0, 0, 0)
-    const end = new Date(this.visibleEnd)
-    end.setHours(23, 0, 0, 0)
-    while (current <= end) {
-      hours.push(new Date(current))
-      current.setHours(current.getHours() + 1)
-    }
+    const cur = new Date(this.visibleStart); cur.setHours(0, 0, 0, 0)
+    const end = new Date(this.visibleEnd);   end.setHours(23, 0, 0, 0)
+    while (cur <= end) { hours.push(new Date(cur)); cur.setHours(cur.getHours() + 1) }
     return hours
   }
 
   private buildDayColumns(): Date[] {
     const days: Date[] = []
-    const current = this.startOfDay(this.visibleStart)
+    const cur = this.startOfDay(this.visibleStart)
     const end = this.startOfDay(this.visibleEnd)
-    while (current <= end) {
-      days.push(new Date(current))
-      current.setDate(current.getDate() + 1)
-    }
+    while (cur <= end) { days.push(new Date(cur)); cur.setDate(cur.getDate() + 1) }
     return days
   }
 
   private buildMonthColumns(): Date[] {
     const months: Date[] = []
-    const current = new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth(), 1)
-    const end = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth(), 1)
-    while (current <= end) {
-      months.push(new Date(current))
-      current.setMonth(current.getMonth() + 1)
-    }
+    const cur = new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth(), 1)
+    const end = new Date(this.visibleEnd.getFullYear(),   this.visibleEnd.getMonth(),   1)
+    while (cur <= end) { months.push(new Date(cur)); cur.setMonth(cur.getMonth() + 1) }
     return months
   }
 
   private buildWeekGroups(days: Date[]): WeekGroup[] {
     const groups: WeekGroup[] = []
-    let current: WeekGroup | null = null
-
+    let cur: WeekGroup | null = null
     for (const day of days) {
-      const isMonday = day.getDay() === 1
-      if (!current || isMonday) {
-        if (current) groups.push(current)
-        const weekNum = this.getISOWeekNumber(day)
-        const monthName = day.toLocaleString('default', { month: 'long' })
-        current = { label: `Week ${weekNum}, ${monthName}, ${day.getFullYear()}`, days: [] }
+      if (!cur || day.getDay() === 1) {
+        if (cur) groups.push(cur)
+        const wn = this.isoWeek(day)
+        // Use Thursday of this ISO week for correct month/year attribution
+        const isoDay  = (day.getDay() + 6) % 7          // Mon=0, Tue=1, ... Sun=6
+        const thursday = new Date(day)
+        thursday.setDate(day.getDate() + (3 - isoDay))   // always lands on Thu of same ISO week
+        cur = {
+          label: `Week ${wn}, ${thursday.toLocaleString('default', { month: 'long' })}, ${thursday.getFullYear()}`,
+          days: []
+        }
       }
-      current.days.push(day)
+      cur.days.push(day)
     }
-    if (current) groups.push(current)
+    if (cur) groups.push(cur)
     return groups
   }
 
-  private getISOWeekNumber(date: Date): number {
+  private isoWeek(date: Date): number {
     const d = new Date(date)
     d.setHours(0, 0, 0, 0)
     d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7))
-    const week1 = new Date(d.getFullYear(), 0, 4)
-    return 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7)
+    const w1 = new Date(d.getFullYear(), 0, 4)
+    return 1 + Math.round(((d.getTime() - w1.getTime()) / 86400000 - 3 + ((w1.getDay() + 6) % 7)) / 7)
   }
 
-  // --- Column header labels --------------------------------------------------
-
-  getTopHeaderLabel(): string {
-    if (!this.visibleStart || !this.visibleEnd) return ''
-    const midMs = (this.visibleStart.getTime() + this.visibleEnd.getTime()) / 2
-    const center = new Date(midMs)
-    if (this.selectedTimescale === 'Hour') {
-      return center.toLocaleString('default', {
-        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
-      })
-    }
-    if (this.selectedTimescale === 'Day') {
-      return center.toLocaleString('default', { month: 'long', year: 'numeric' })
-    }
-    return ''
-  }
+  // ── Header label helpers ───────────────────────────────────────────────────
 
   getHourLabel(date: Date): string {
     const h = date.getHours()
-    if (h === 0) return '12 AM'
-    if (h < 12) return `${h} AM`
+    if (h === 0)  return '12 AM'
+    if (h < 12)   return `${h} AM`
     if (h === 12) return '12 PM'
     return `${h - 12} PM`
   }
@@ -423,182 +376,131 @@ export class AppComponent implements OnInit, AfterViewInit {
     return date.toLocaleString('default', { month: 'short', year: 'numeric' })
   }
 
-  // --- Bar positioning -------------------------------------------------------
+  // ── Bar positioning ────────────────────────────────────────────────────────
 
   getColumnIndex(dateStr: string): number {
-    const [year, month, day] = dateStr.split('-').map(Number)
-    const date = new Date(year, month - 1, day)
-
+    const [y, mo, d] = dateStr.split('-').map(Number)
+    const date = new Date(y, mo - 1, d)
     switch (this.selectedTimescale) {
-      case 'Hour':
-        return this.daysBetween(this.visibleStart, date) * 24
+      case 'Hour':  return this.daysBetween(this.visibleStart, date) * 24
       case 'Day':
-      case 'Week':
-        return this.daysBetween(this.visibleStart, date)
+      case 'Week':  return this.daysBetween(this.visibleStart, date)
       case 'Month': {
-        const startYear = this.visibleStart.getFullYear()
-        const startMonth = this.visibleStart.getMonth()
-        return (date.getFullYear() - startYear) * 12 + (date.getMonth() - startMonth)
+        const sy = this.visibleStart.getFullYear(), sm = this.visibleStart.getMonth()
+        return (date.getFullYear() - sy) * 12 + (date.getMonth() - sm)
       }
     }
   }
 
-  getBarStyleObject(order: WorkOrderDocument): { [key: string]: string } {
-    const startIdx = this.getColumnIndex(order.data.startDate)
-    const endIdx = this.getColumnIndex(order.data.endDate) + 1
-    const leftPx = startIdx * this.columnWidth
-    const widthPx = (endIdx - startIdx) * this.columnWidth
-
+  getBarStyleObject(order: WorkOrderDocument): { [k: string]: string } {
+    const s = this.getColumnIndex(order.data.startDate)
+    const e = this.getColumnIndex(order.data.endDate) + 1
     return {
-      'left': `${leftPx}px`,
-      'width': `${widthPx}px`,
+      left:               `${s * this.columnWidth}px`,
+      width:              `${(e - s) * this.columnWidth}px`,
       'background-color': this.getStatusBgColor(order.data.status),
-      'border': `1px solid ${this.getStatusBorderColor(order.data.status)}`
+      border:             `1px solid ${this.getStatusBorderColor(order.data.status)}`
     }
   }
 
-  // --- Current period indicator ----------------------------------------------
+  // ── Current period indicator ───────────────────────────────────────────────
 
   getCurrentPeriodOffset(): number {
-    const today = new Date()
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-    const idx = this.getColumnIndex(todayStr)
-    return idx * this.columnWidth + this.columnWidth / 2
+    const t   = new Date()
+    const str = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`
+    return this.getColumnIndex(str) * this.columnWidth + this.columnWidth / 2
   }
 
   getCurrentPeriodLabel(): string {
-    switch (this.selectedTimescale) {
-      case 'Hour':  return 'Current hour'
-      case 'Day':   return 'Current day'
-      case 'Week':  return 'Current week'
-      case 'Month': return 'Current month'
+    const map: Record<Timescale, string> = {
+      Hour: 'Current hour', Day: 'Current day', Week: 'Current week', Month: 'Current month'
     }
+    return map[this.selectedTimescale]
   }
 
-  // --- Data helpers ----------------------------------------------------------
+  // ── Data helpers ───────────────────────────────────────────────────────────
 
   getOrdersForWorkCenter(wcId: string): WorkOrderDocument[] {
-    return this.workOrders.filter(order => order.data.workCenterId === wcId)
+    return this.workOrders.filter(o => o.data.workCenterId === wcId)
   }
-
-  // --- Status label helpers --------------------------------------------------
 
   getStatusLabel(status: string): string {
-    switch (status) {
-      case 'open': return 'Open'
-      case 'in-progress': return 'In progress'
-      case 'complete': return 'Complete'
-      case 'blocked': return 'Blocked'
-      default: return status
+    const map: Record<string, string> = {
+      'open': 'Open', 'in-progress': 'In progress', 'complete': 'Complete', 'blocked': 'Blocked'
     }
+    return map[status] ?? status
   }
 
-  // --- Style helpers ---------------------------------------------------------
+  // ── Status style helpers ───────────────────────────────────────────────────
 
-  getStatusBgColor(status: string): string {
-    switch (status) {
-      case 'open': return '#F2FEFF'
-      case 'in-progress': return '#EDEEFF'
-      case 'complete': return '#F8FFF3'
-      case 'blocked': return '#FFFCF1'
-      default: return '#F2FEFF'
-    }
+  getStatusBgColor(s: string): string {
+    return ({ open: '#F2FEFF', 'in-progress': '#EDEEFF', complete: '#F8FFF3', blocked: '#FFFCF1' } as any)[s] ?? '#F2FEFF'
+  }
+  getStatusTextColor(s: string): string {
+    return ({ open: 'rgba(0,176,191,1)', 'in-progress': 'rgba(62,64,219,1)', complete: 'rgba(8,162,104,1)', blocked: 'rgba(177,54,0,1)' } as any)[s] ?? 'rgba(0,176,191,1)'
+  }
+  getStatusBorderColor(s: string): string {
+    return ({ open: '#CEFBFF', 'in-progress': '#DEE0FF', complete: '#D1FAB3', blocked: '#FFF5CF' } as any)[s] ?? '#CEFBFF'
+  }
+  getStatusBadgeColor(s: string): string {
+    return ({ open: '#E4FDFF', 'in-progress': '#D6D8FF', complete: '#E1FFCC', blocked: '#FCEEB5' } as any)[s] ?? '#E4FDFF'
+  }
+  getStatusBadgeStyle(s: string): { [k: string]: string } {
+    return { 'background-color': this.getStatusBadgeColor(s), color: this.getStatusTextColor(s) }
   }
 
-  getStatusTextColor(status: string): string {
-    switch (status) {
-      case 'open': return 'rgba(0, 176, 191, 1)'
-      case 'in-progress': return 'rgba(62, 64, 219, 1)'
-      case 'complete': return 'rgba(8, 162, 104, 1)'
-      case 'blocked': return 'rgba(177, 54, 0, 1)'
-      default: return 'rgba(0, 176, 191, 1)'
-    }
+  // ── trackBy helpers ────────────────────────────────────────────────────────
+
+  trackByDate    = (_: number, d: Date)                => d.getTime()
+  trackByWcId    = (_: number, wc: WorkCenterDocument) => wc.docId
+  trackByOrderId = (_: number, o: WorkOrderDocument)   => o.docId
+  trackByIndex   = (i: number)                         => i
+
+  // ── Date utilities ─────────────────────────────────────────────────────────
+
+  private startOfDay(d: Date): Date {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate())
   }
 
-  getStatusBorderColor(status: string): string {
-    switch (status) {
-      case 'open': return '#CEFBFF'
-      case 'in-progress': return '#DEE0FF'
-      case 'complete': return '#D1FAB3'
-      case 'blocked': return '#FFF5CF'
-      default: return '#CEFBFF'
-    }
-  }
-
-  getStatusBadgeColor(status: string): string {
-    switch (status) {
-      case 'open': return '#E4FDFF'
-      case 'in-progress': return '#D6D8FF'
-      case 'complete': return '#E1FFCC'
-      case 'blocked': return '#FCEEB5'
-      default: return '#E4FDFF'
-    }
-  }
-
-  getStatusBadgeStyle(status: string): { [key: string]: string } {
-    return {
-      'background-color': this.getStatusBadgeColor(status),
-      'color': this.getStatusTextColor(status)
-    }
-  }
-
-  // --- Date utility helpers --------------------------------------------------
-
-  private startOfDay(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  }
-
-  private addDays(date: Date, days: number): Date {
-    const result = new Date(date)
-    result.setDate(result.getDate() + days)
-    return result
+  private addDays(d: Date, n: number): Date {
+    const r = new Date(d); r.setDate(r.getDate() + n); return r
   }
 
   private daysBetween(from: Date, to: Date): number {
-    const fromMs = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate())
-    const toMs = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate())
-    return Math.floor((toMs - fromMs) / (1000 * 60 * 60 * 24))
+    const a = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate())
+    const b = Date.UTC(to.getFullYear(),   to.getMonth(),   to.getDate())
+    return Math.floor((b - a) / 86400000)
   }
 
   private daysToPixels(days: number): number {
     switch (this.selectedTimescale) {
       case 'Hour':  return days * 24 * this.columnWidth
-      case 'Day':   return days * this.columnWidth
-      case 'Week':  return days * this.columnWidth
       case 'Month': return (days / 30) * this.columnWidth
+      default:      return days * this.columnWidth
     }
   }
 
   private getDateAtPixel(px: number): Date {
     switch (this.selectedTimescale) {
       case 'Hour': {
-        const hours = Math.floor(px / this.columnWidth)
-        const result = new Date(this.visibleStart)
-        result.setHours(result.getHours() + hours)
-        return result
+        const r = new Date(this.visibleStart)
+        r.setHours(r.getHours() + Math.floor(px / this.columnWidth))
+        return r
       }
       case 'Day':
-      case 'Week': {
-        const days = Math.floor(px / this.columnWidth)
-        return this.addDays(this.startOfDay(this.visibleStart), days)
-      }
+      case 'Week':
+        return this.addDays(this.startOfDay(this.visibleStart), Math.floor(px / this.columnWidth))
       case 'Month': {
-        const rawMonths = Math.floor(px / this.columnWidth)
-        const clampedMonths = Math.min(rawMonths, 1200)
-        return new Date(
-          this.visibleStart.getFullYear(),
-          this.visibleStart.getMonth() + clampedMonths,
-          1
-        )
+        const m = Math.min(Math.floor(px / this.columnWidth), 1200)
+        return new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth() + m, 1)
       }
     }
   }
 
   private scrollToDate(date: Date, align: 'left' | 'center'): void {
-    const el = this.rightColumn.nativeElement
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-    const idx = this.getColumnIndex(dateStr)
-    const px = idx * this.columnWidth
+    const el  = this.rightColumn.nativeElement
+    const str = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`
+    const px  = this.getColumnIndex(str) * this.columnWidth
     el.scrollLeft = align === 'center' ? Math.max(0, px - el.clientWidth / 2) : Math.max(0, px)
   }
 }
