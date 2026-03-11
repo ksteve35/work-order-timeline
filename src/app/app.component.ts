@@ -340,7 +340,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         const thursday = new Date(day)
         thursday.setDate(day.getDate() + (3 - isoDay))   // always lands on Thu of same ISO week
         cur = {
-          label: `Week ${wn}, ${thursday.toLocaleString('default', { month: 'long' })}, ${thursday.getFullYear()}`,
+          label: `W${wn}, ${thursday.toLocaleString('default', { month: 'long' })}, ${thursday.getFullYear()}`,
           days: []
         }
       }
