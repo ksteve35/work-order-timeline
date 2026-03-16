@@ -171,6 +171,12 @@ $work-center-left-offset: 31px;
   border-top: $grid-border;
   border-left: $grid-border;
   overflow: hidden;
+  opacity: 1;
+  transition: opacity 150ms ease-in;
+
+  &--hidden {
+    opacity: 0;
+  }
 }
 
 // --- Left column (sticky work center labels) ----------------------------------

@@ -46,6 +46,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   private _cachedDayColumns: Date[] = []
   private isLoadingMore = false
+  isReady = false
 
   constructor(private sampleData: SampleDataService, private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
@@ -56,13 +57,14 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.scrollToDate(new Date(), 'center')
+    // Hold isLoadingMore true until the initial scroll is committed.
+    // Without this, scrollToDate fires the scroll listener which calls
+    // extendRange, which applies a scrollDelta in a requestAnimationFrame
+    // that overwrites the initial centered position before the first paint.
+    this.isLoadingMore = true
 
     const el = this.rightColumn.nativeElement
 
-    // Convert pure mouse-wheel vertical scroll to horizontal.
-    // Trackpads always have non-zero deltaX when swiping horizontally,
-    // so they scroll natively and are unaffected.
     el.addEventListener('wheel', (e: WheelEvent) => {
       if (e.deltaX === 0) {
         e.preventDefault()
@@ -70,29 +72,36 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
     }, { passive: false })
 
-    // runOutsideAngular prevents zone.js from patching this listener.
-    // Without it, zone.js intercepts every scroll event and triggers
-    // Angular CD automatically — regardless of whether we call ngZone.run().
-    // cdr.detectChanges() in the load functions handles DOM updates explicitly.
     this.ngZone.runOutsideAngular(() => {
       el.addEventListener('scroll', () => this.onScroll())
     })
-  }
 
+    // detectChanges first so the DOM has correct column widths before
+    // scrollToDate measures them. Then release the lock.
+    setTimeout(() => {
+      this.cdr.detectChanges()
+      this.scrollToDate(new Date(), 'center')
+      this.isReady = true
+      this.isLoadingMore = false
+      this.checkScrollEdges()
+    }, 0)
+  }
   // ---------------------------------------------------------------------------
   // Timescale change — plain <select> fires inside Angular zone, no CD tricks
   // ---------------------------------------------------------------------------
 
   onTimescaleChange(newTimescale: Timescale): void {
-    const anchorDate = this.getDateAtPixel(this.rightColumn.nativeElement.scrollLeft)
+    const el = this.rightColumn.nativeElement
+    // Anchor to the CENTER of the viewport so the same date stays centered
+    // after switching. The left-edge anchor felt inconsistent with initial load
+    // which always centers today.
+    const anchorDate = this.getDateAtPixel(el.scrollLeft + el.clientWidth / 2)
     this.selectedTimescale = newTimescale
     this.isLoadingMore = true
     this.initializeRange(anchorDate)
-    // One tick so Angular renders the new timescale's *ngIf blocks before
-    // scrollToDate measures the grid. extendRange then covers any buffer gap.
     setTimeout(() => {
       this.cdr.detectChanges()
-      this.scrollToDate(anchorDate, 'left')
+      this.scrollToDate(anchorDate, 'center')
       this.checkScrollEdges()
     }, 0)
   }
