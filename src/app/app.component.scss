@@ -96,45 +96,61 @@ $work-center-left-offset: 31px;
   display: flex;
   align-items: center;
   border-radius: 0 5px 5px 0;
-  overflow: visible;
-  position: relative;
+  padding: 0 8px 0 8px;
+  gap: 6.53px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.timescale-value {
+  font-family: $page-font-family;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(62, 64, 219, 1);
+  line-height: 25px;
+  white-space: nowrap;
 }
 
 .timescale-chevron {
   width: 8.47px;
   height: 5px;
-  position: absolute;
-  right: 8px;
+  flex-shrink: 0;
   pointer-events: none;
 }
 
-.timescale-select {
-  appearance: none;
-  -webkit-appearance: none;
-  border: none;
-  outline: none;
-  background: transparent;
+.timescale-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 200px;
+  height: 136px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px rgba(104, 113, 150, 0.1),
+              0 2.5px 3px -1.5px rgba(200, 207, 233, 1),
+              0 4.5px 5px -1px rgba(216, 220, 235, 1);
+  z-index: 9999;
+  padding: 12px 0;
+  overflow: hidden;
+}
+
+.timescale-option {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
   font-family: $page-font-family;
+  font-weight: 500;
   font-size: 13px;
-  font-weight: 600;
-  color: rgba(62, 64, 219, 1);
-  height: 25px;
-  // left padding for text, right padding covers the chevron (8px gap + 8.47px icon + 8px right margin)
-  padding: 0 28px 0 8px;
+  color: rgba(47, 48, 89, 1);
   cursor: pointer;
-  line-height: 25px;
-  width: 100%;
 
-  option {
-    font-family: $page-font-family;
-    font-size: 14px;
-    font-weight: 500;
-    color: rgba(3, 9, 41, 1);
-    background: #fff;
+  &:hover {
+    background: rgba(238, 240, 255, 1);
+  }
 
-    &:checked {
-      color: rgba(62, 64, 219, 1);
-    }
+  &--selected {
+    color: rgba(62, 64, 219, 1);
   }
 }
 

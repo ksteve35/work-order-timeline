@@ -47,6 +47,27 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _cachedDayColumns: Date[] = []
   private isLoadingMore = false
   isReady = false
+  dropdownOpen = false
+
+  timescaleOptions: { label: string; value: Timescale }[] = [
+    { label: 'Hour',  value: 'Hour'  },
+    { label: 'Day',   value: 'Day'   },
+    { label: 'Week',  value: 'Week'  },
+    { label: 'Month', value: 'Month' }
+  ]
+
+  toggleDropdown(): void {
+    this.dropdownOpen = !this.dropdownOpen
+  }
+
+  selectTimescale(value: Timescale): void {
+    this.dropdownOpen = false
+    if (value !== this.selectedTimescale) this.onTimescaleChange(value)
+  }
+
+  closeDropdown(): void {
+    this.dropdownOpen = false
+  }
 
   constructor(private sampleData: SampleDataService, private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
@@ -71,6 +92,13 @@ export class AppComponent implements OnInit, AfterViewInit {
         el.scrollLeft += e.deltaY
       }
     }, { passive: false })
+
+    document.addEventListener('click', (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.timescale-selector-both')) {
+        this.dropdownOpen = false
+      }
+    })
 
     this.ngZone.runOutsideAngular(() => {
       el.addEventListener('scroll', () => this.onScroll())

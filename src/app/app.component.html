@@ -8,18 +8,17 @@
       <div class="timescale-selector">
         <div class="timescale-selector-both">
           <div class="timescale-selector-left">Timescale</div>
-          <div class="timescale-selector-right">
-            <select
-              class="timescale-select"
-              [ngModel]="selectedTimescale"
-              (ngModelChange)="onTimescaleChange($event)"
-            >
-              <option value="Hour">Hour</option>
-              <option value="Day">Day</option>
-              <option value="Week">Week</option>
-              <option value="Month">Month</option>
-            </select>
+          <div class="timescale-selector-right" (click)="toggleDropdown()">
+            <span class="timescale-value">{{ selectedTimescale }}</span>
             <img src="/images/Down@4x.png" class="timescale-chevron" alt="" />
+            <div class="timescale-dropdown" *ngIf="dropdownOpen">
+              <div
+                class="timescale-option"
+                *ngFor="let opt of timescaleOptions"
+                [class.timescale-option--selected]="opt.value === selectedTimescale"
+                (click)="selectTimescale(opt.value); $event.stopPropagation()"
+              >{{ opt.label }}</div>
+            </div>
           </div>
         </div>
       </div>
