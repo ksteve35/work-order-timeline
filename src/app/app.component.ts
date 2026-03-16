@@ -16,10 +16,10 @@ interface DayGroup   { label: string; hours: Date[] }
 interface WindowConfig { initialDays: number; loadDays: number; bufferDays: number }
 
 const WINDOW_CONFIG: Record<Timescale, WindowConfig> = {
-  Hour:  { initialDays: 3,   loadDays: 2,   bufferDays: 3   },
-  Day:   { initialDays: 92,  loadDays: 14,  bufferDays: 21  },
-  Week:  { initialDays: 112, loadDays: 28,  bufferDays: 42  },
-  Month: { initialDays: 730, loadDays: 90,  bufferDays: 120 }
+  Hour:  { initialDays: 7,   loadDays: 3,   bufferDays: 5   },
+  Day:   { initialDays: 120, loadDays: 30,  bufferDays: 50  },
+  Week:  { initialDays: 168, loadDays: 56,  bufferDays: 90  },
+  Month: { initialDays: 730, loadDays: 180, bufferDays: 270 }
 }
 
 @Component({
