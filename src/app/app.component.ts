@@ -80,7 +80,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     // scrollToDate measures them. Then release the lock.
     setTimeout(() => {
       this.cdr.detectChanges()
-      this.scrollToDate(new Date(), 'center')
+      this.scrollToDate(new Date(), 'left')
       this.isReady = true
       this.isLoadingMore = false
       this.checkScrollEdges()
@@ -92,16 +92,13 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   onTimescaleChange(newTimescale: Timescale): void {
     const el = this.rightColumn.nativeElement
-    // Anchor to the CENTER of the viewport so the same date stays centered
-    // after switching. The left-edge anchor felt inconsistent with initial load
-    // which always centers today.
-    const anchorDate = this.getDateAtPixel(el.scrollLeft + el.clientWidth / 2)
+    const anchorDate = this.getDateAtPixel(el.scrollLeft)
     this.selectedTimescale = newTimescale
     this.isLoadingMore = true
     this.initializeRange(anchorDate)
     setTimeout(() => {
       this.cdr.detectChanges()
-      this.scrollToDate(anchorDate, 'center')
+      this.scrollToDate(anchorDate, 'left')
       this.checkScrollEdges()
     }, 0)
   }
@@ -110,18 +107,16 @@ export class AppComponent implements OnInit, AfterViewInit {
   // Range init
   // ---------------------------------------------------------------------------
 
-  initializeRange(centerDate: Date): void {
-    const cfg    = WINDOW_CONFIG[this.selectedTimescale]
-    const center = this.startOfDay(centerDate)
+  initializeRange(startDate: Date): void {
+    const cfg   = WINDOW_CONFIG[this.selectedTimescale]
+    const start = this.startOfDay(startDate)
 
     if (this.selectedTimescale === 'Month') {
-      const half    = Math.round(cfg.initialDays / 30 / 2)
-      this.visibleStart = new Date(center.getFullYear(), center.getMonth() - half, 1)
-      this.visibleEnd   = new Date(center.getFullYear(), center.getMonth() + half + 1, 0)
+      this.visibleStart = new Date(start.getFullYear(), start.getMonth(), 1)
+      this.visibleEnd   = new Date(start.getFullYear(), start.getMonth() + Math.round(cfg.initialDays / 30), 0)
     } else {
-      const half    = Math.floor(cfg.initialDays / 2)
-      this.visibleStart = this.addDays(center, -half)
-      this.visibleEnd   = this.addDays(center,  half)
+      this.visibleStart = start
+      this.visibleEnd   = this.addDays(start, cfg.initialDays)
     }
 
     this.refreshColumnCache()

@@ -97,70 +97,44 @@ $work-center-left-offset: 31px;
   align-items: center;
   border-radius: 0 5px 5px 0;
   overflow: visible;
-  padding-right: 8px;
-  gap: 6.53px;
+  position: relative;
 }
 
 .timescale-chevron {
   width: 8.47px;
   height: 5px;
-  flex-shrink: 0;
+  position: absolute;
+  right: 8px;
   pointer-events: none;
 }
 
-// ng-select overrides
-.timescale-ng-select {
-  width: auto;
+.timescale-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: $page-font-family;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(62, 64, 219, 1);
+  height: 25px;
+  // left padding for text, right padding covers the chevron (8px gap + 8.47px icon + 8px right margin)
+  padding: 0 28px 0 8px;
+  cursor: pointer;
+  line-height: 25px;
+  width: 100%;
 
-  &.ng-select .ng-arrow-wrapper {
-    display: none;
-  }
-
-  &.ng-select .ng-select-container {
-    border: none;
-    box-shadow: none;
-    outline: none;
-    background: transparent;
-    min-height: 25px;
-    height: 25px;
-    cursor: pointer;
-    width: auto;
-    display: flex;
-    align-items: center;
-    user-select: none;
-  }
-
-  &.ng-select .ng-select-container .ng-value-container {
-    padding: 0 !important;
-    padding-left: 8px !important;
-    display: flex !important;
-    align-items: center !important;
-    flex: 1 !important;
-    height: 25px !important;
-    align-self: stretch !important;
-  }
-
-  &.ng-select .ng-select-container .ng-value-container .ng-value {
+  option {
     font-family: $page-font-family;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
-    color: rgba(62, 64, 219, 1);
-    white-space: nowrap;
-    line-height: 25px !important;
-  }
+    color: rgba(3, 9, 41, 1);
+    background: #fff;
 
-  &.ng-select .ng-select-container .ng-value-container .ng-input {
-    width: 0;
-    padding: 0;
-    overflow: hidden;
-    position: absolute;
-  }
-
-  &.ng-select.ng-select-focused .ng-select-container,
-  &.ng-select.ng-select-opened .ng-select-container {
-    border: none;
-    box-shadow: none;
-    outline: none;
+    &:checked {
+      color: rgba(62, 64, 219, 1);
+    }
   }
 }
 
@@ -393,76 +367,4 @@ $work-center-left-offset: 31px;
 .timeline-grid--day .current-period-label,
 .timeline-grid--day .current-period-line {
   top: calc(#{$header-height} * 2);
-}
-
-// --- Global ng-select dropdown overrides -------------------------------------
-
-::ng-deep .ng-dropdown-panel {
-  z-index: 9999;
-  min-width: 200px !important;
-  border: none;
-  box-shadow: 0 0 0 1px rgba(104, 113, 150, 0.1),
-    0 2.5px 3px -1.5px rgba(200, 207, 233, 1),
-    0 4.5px 5px -1px rgba(216, 220, 235, 1);
-  border-radius: 6px;
-  overflow: hidden;
-  top: 30px !important;
-  left: 0 !important;
-  background-color: #fff;
-}
-
-::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
-  font-family: $page-font-family;
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(3, 9, 41, 1);
-  padding: 0 38px 0 12px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-
-  .ng-option-label {
-    line-height: 1;
-    display: block;
-  }
-
-  &:hover,
-  &.ng-option-marked {
-    background: rgba(238, 240, 255, 1);
-  }
-
-  &.ng-option-selected {
-    font-weight: 500;
-    color: rgba(62, 64, 219, 1);
-    background: #fff;
-  }
-}
-
-::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items {
-  background-color: #fff;
-  padding: 17px 0;
-}
-
-::ng-deep .timescale-ng-select.ng-select .ng-select-container {
-  height: 25px !important;
-  min-height: 25px !important;
-  align-items: center !important;
-}
-
-::ng-deep .timescale-ng-select.ng-select .ng-select-container .ng-value-container {
-  padding: 0 !important;
-  padding-left: 8px !important;
-  align-self: stretch !important;
-  align-items: center !important;
-  display: flex !important;
-  flex: 1 !important;
-  height: 25px !important;
-}
-
-::ng-deep .timescale-ng-select.ng-select .ng-select-container .ng-value-container .ng-value {
-  font-family: "Circular-Std", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(62, 64, 219, 1) !important;
-  line-height: 1 !important;
 }
