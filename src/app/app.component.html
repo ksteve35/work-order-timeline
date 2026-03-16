@@ -117,13 +117,7 @@
           </ng-container>
 
           <!-- Data rows -->
-          <div class="timeline-row" *ngFor="let wc of workCenters; trackBy: trackByWcId">
-            <div
-              class="timeline-cells-bg"
-              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
-            >
-              <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate"></div>
-            </div>
+          <div class="timeline-row" [ngStyle]="gridBackgroundStyle" *ngFor="let wc of workCenters; trackBy: trackByWcId">
             <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId); trackBy: trackByOrderId">
               <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
                 <span class="bar-label">{{ order.data.name }}</span>

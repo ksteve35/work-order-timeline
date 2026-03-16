@@ -294,21 +294,6 @@ $work-center-left-offset: 31px;
   }
 }
 
-.timeline-cells-bg {
-  display: grid;
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-
-  .timeline-cell {
-    border-right: $grid-border;
-
-    &:last-child {
-      border-right: none;
-    }
-  }
-}
-
 // --- Work order bars ----------------------------------------------------------
 
 .work-order-bar {

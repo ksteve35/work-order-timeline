@@ -1,6 +1,6 @@
 import {
   AfterViewInit, ChangeDetectorRef, Component,
-  ElementRef, OnInit, ViewChild
+  ElementRef, NgZone, OnInit, ViewChild
 } from '@angular/core'
 
 import { CommonModule } from '@angular/common'
@@ -47,7 +47,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private _cachedDayColumns: Date[] = []
   private isLoadingMore = false
 
-  constructor(private sampleData: SampleDataService, private cdr: ChangeDetectorRef) {}
+  constructor(private sampleData: SampleDataService, private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
   ngOnInit(): void {
     this.workCenters = this.sampleData.getWorkCenters()
@@ -70,11 +70,13 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
     }, { passive: false })
 
-    // Scroll listener runs inside Angular zone (no runOutsideAngular).
-    // This means Angular's CD runs on every scroll event, which is fine
-    // for an assessment. The isLoadingMore guard keeps prepend/append
-    // from stacking up.
-    el.addEventListener('scroll', () => this.onScroll())
+    // runOutsideAngular prevents zone.js from patching this listener.
+    // Without it, zone.js intercepts every scroll event and triggers
+    // Angular CD automatically — regardless of whether we call ngZone.run().
+    // cdr.detectChanges() in the load functions handles DOM updates explicitly.
+    this.ngZone.runOutsideAngular(() => {
+      el.addEventListener('scroll', () => this.onScroll())
+    })
   }
 
   // ---------------------------------------------------------------------------
@@ -86,13 +88,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.selectedTimescale = newTimescale
     this.isLoadingMore = true
     this.initializeRange(anchorDate)
-    // Commit the new column count to the DOM before scrollToDate so the
-    // browser doesn't silently cap el.scrollLeft at the old scrollWidth.
-    // Then check edges using totalColumns (in memory) not el.scrollWidth (DOM).
+    // One tick so Angular renders the new timescale's *ngIf blocks before
+    // scrollToDate measures the grid. extendRange then covers any buffer gap.
     setTimeout(() => {
       this.cdr.detectChanges()
       this.scrollToDate(anchorDate, 'left')
-      this.isLoadingMore = false
       this.checkScrollEdges()
     }, 0)
   }
@@ -145,71 +145,68 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   private onScroll(): void {
     if (this.isLoadingMore) return
-    this.checkScrollEdges()
-  }
-
-  private checkScrollEdges(): void {
-    if (this.isLoadingMore) return
-
     const el      = this.rightColumn.nativeElement
     const cfg     = WINDOW_CONFIG[this.selectedTimescale]
     const bufPx   = this.daysToPixels(cfg.bufferDays)
-    // Use totalColumns * columnWidth (in-memory, always current) instead of
-    // el.scrollWidth. Setting el.scrollLeft fires a synchronous scroll event
-    // so checkScrollEdges can run before Angular commits the DOM update,
-    // making el.scrollWidth stale and causing false "not at edge" readings.
     const totalPx = this.totalColumns * this.columnWidth
-
-    if (el.scrollLeft < bufPx) {
+    if (el.scrollLeft < bufPx || el.scrollLeft + el.clientWidth > totalPx - bufPx) {
       this.isLoadingMore = true
-      this.prependColumns(cfg.loadDays)
-      return
-    }
-
-    if (el.scrollLeft + el.clientWidth > totalPx - bufPx) {
-      this.isLoadingMore = true
-      this.appendColumns(cfg.loadDays)
+      this.extendRange()
     }
   }
 
-  private prependColumns(days: number): void {
-    const anchorDate = this.getDateAtPixel(this.rightColumn.nativeElement.scrollLeft)
-
-    if (this.selectedTimescale === 'Month') {
-      const m = Math.round(days / 30)
-      this.visibleStart = new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth() - m, 1)
+  private checkScrollEdges(): void {
+    const el      = this.rightColumn.nativeElement
+    const cfg     = WINDOW_CONFIG[this.selectedTimescale]
+    const bufPx   = this.daysToPixels(cfg.bufferDays)
+    const totalPx = this.totalColumns * this.columnWidth
+    if (el.scrollLeft < bufPx || el.scrollLeft + el.clientWidth > totalPx - bufPx) {
+      this.isLoadingMore = true
+      this.extendRange()
     } else {
-      this.visibleStart = this.addDays(this.visibleStart, -days)
+      this.isLoadingMore = false
+    }
+  }
+
+  // Extends visibleStart/visibleEnd synchronously until the current scroll
+  // position is fully covered with buffer on both sides. No setTimeout chains
+  // — one loop, one detectChanges, done. This means no matter how fast the
+  // user scrolls, the range always catches up in a single event loop tick.
+  private extendRange(): void {
+    const el    = this.rightColumn.nativeElement
+    const cfg   = WINDOW_CONFIG[this.selectedTimescale]
+    const bufPx = this.daysToPixels(cfg.bufferDays)
+
+    // Extend left until scrollLeft >= bufPx
+    while (el.scrollLeft < bufPx) {
+      const anchorDate = this.getDateAtPixel(el.scrollLeft)
+      if (this.selectedTimescale === 'Month') {
+        const m = Math.round(cfg.loadDays / 30)
+        this.visibleStart = new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth() - m, 1)
+      } else {
+        this.visibleStart = this.addDays(this.visibleStart, -cfg.loadDays)
+      }
+      this.refreshColumnCache()
+      const d = anchorDate
+      const str = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+      el.scrollLeft = Math.max(0, this.getColumnIndex(str) * this.columnWidth)
     }
 
-    this.refreshColumnCache()
+    // Extend right until right edge <= totalPx - bufPx
+    let totalPx = this.totalColumns * this.columnWidth
+    while (el.scrollLeft + el.clientWidth > totalPx - bufPx) {
+      if (this.selectedTimescale === 'Month') {
+        const m = Math.round(cfg.loadDays / 30)
+        this.visibleEnd = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth() + m + 1, 0)
+      } else {
+        this.visibleEnd = this.addDays(this.visibleEnd, cfg.loadDays)
+      }
+      this.refreshColumnCache()
+      totalPx = this.totalColumns * this.columnWidth
+    }
 
-    // detectChanges before scrollToDate: the prepend widens the grid leftward,
-    // so the anchor's new pixel position is larger. If the DOM hasn't updated,
-    // the browser caps el.scrollLeft at the old (narrower) scrollWidth.
     this.cdr.detectChanges()
-
-    setTimeout(() => {
-      this.scrollToDate(anchorDate, 'left')
-      this.isLoadingMore = false
-      this.checkScrollEdges()
-    }, 0)
-  }
-
-  private appendColumns(days: number): void {
-    if (this.selectedTimescale === 'Month') {
-      const m = Math.round(days / 30)
-      this.visibleEnd = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth() + m + 1, 0)
-    } else {
-      this.visibleEnd = this.addDays(this.visibleEnd, days)
-    }
-
-    this.refreshColumnCache()
-
-    setTimeout(() => {
-      this.isLoadingMore = false
-      this.checkScrollEdges()
-    }, 0)
+    this.isLoadingMore = false
   }
 
   // ---------------------------------------------------------------------------
@@ -385,9 +382,18 @@ export class AppComponent implements OnInit, AfterViewInit {
     return { 'background-color': this.getStatusBadgeColor(s), color: this.getStatusTextColor(s) }
   }
 
-  // ---------------------------------------------------------------------------
-  // trackBy
-  // ---------------------------------------------------------------------------
+  // CSS repeating-linear-gradient replaces the *ngFor of empty background
+  // cells. One gradient declaration regardless of column count = zero extra
+  // DOM nodes and zero per-column binding evaluation on every detectChanges.
+  get gridBackground(): string {
+    const w = this.columnWidth
+    return `repeating-linear-gradient(to right, transparent 0px, transparent ${w - 1}px, ${this.gridBorderColor} ${w - 1}px, ${this.gridBorderColor} ${w}px)`
+  }
+  private readonly gridBorderColor = 'rgba(230, 235, 240, 1)'
+
+  get gridBackgroundStyle(): { [k: string]: string } {
+    return { 'background-image': this.gridBackground }
+  }
 
   trackByDate    = (_: number, d: Date)                => d.getTime()
   trackByWcId    = (_: number, wc: WorkCenterDocument) => wc.docId
