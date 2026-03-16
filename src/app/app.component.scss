@@ -226,6 +226,7 @@ $work-center-left-offset: 31px;
   flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
+  overflow-anchor: none; /* prevent browser scroll anchoring from fighting our manual scrollLeft corrections during prepend */
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
