@@ -9,17 +9,16 @@
         <div class="timescale-selector-both">
           <div class="timescale-selector-left">Timescale</div>
           <div class="timescale-selector-right">
-            <ng-select
-              class="timescale-ng-select"
-              [items]="timescaleOptions"
-              bindLabel="label"
-              bindValue="value"
+            <select
+              class="timescale-select"
               [ngModel]="selectedTimescale"
               (ngModelChange)="onTimescaleChange($event)"
-              [clearable]="false"
-              [searchable]="false"
-              appendTo=".timescale-selector-both"
-            ></ng-select>
+            >
+              <option value="Hour">Hour</option>
+              <option value="Day">Day</option>
+              <option value="Week">Week</option>
+              <option value="Month">Month</option>
+            </select>
             <img src="/images/Down@4x.png" class="timescale-chevron" alt="" />
           </div>
         </div>
@@ -31,9 +30,7 @@
         <div
           class="work-center-header"
           [class.work-center-header--double]="selectedTimescale !== 'Month'"
-        >
-          Work Center
-        </div>
+        >Work Center</div>
         <div class="work-center-row" *ngFor="let wc of workCenters; trackBy: trackByWcId">
           {{ wc.data.name }}
         </div>
@@ -69,25 +66,14 @@
             </div>
           </ng-container>
 
-          <!-- HOUR: two-row header -->
-          <ng-container *ngIf="selectedTimescale === 'Hour'">
-            <div class="timeline-header-row timeline-header-row--period-top">
-              <div class="timeline-cell timeline-cell--period-label">{{ topHeaderLabel }}</div>
-            </div>
-            <div
-              class="timeline-header-row"
-              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
-            >
-              <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
-                {{ getHourLabel(col) }}
-              </div>
-            </div>
-          </ng-container>
-
           <!-- DAY: two-row header -->
           <ng-container *ngIf="selectedTimescale === 'Day'">
-            <div class="timeline-header-row timeline-header-row--period-top">
-              <div class="timeline-cell timeline-cell--period-label">{{ topHeaderLabel }}</div>
+            <div class="timeline-header-row timeline-header-row--week-top">
+              <div
+                class="timeline-cell timeline-cell--week-label"
+                *ngFor="let group of monthGroups; trackBy: trackByIndex"
+                [style.width.px]="group.days.length * columnWidth"
+              >{{ group.label }}</div>
             </div>
             <div
               class="timeline-header-row"
@@ -95,6 +81,25 @@
             >
               <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
                 {{ getDayLabel(col) }}
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- HOUR: two-row header -->
+          <ng-container *ngIf="selectedTimescale === 'Hour'">
+            <div class="timeline-header-row timeline-header-row--week-top">
+              <div
+                class="timeline-cell timeline-cell--week-label"
+                *ngFor="let group of dayGroups; trackBy: trackByIndex"
+                [style.width.px]="group.hours.length * columnWidth"
+              >{{ group.label }}</div>
+            </div>
+            <div
+              class="timeline-header-row"
+              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
+            >
+              <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
+                {{ getHourLabel(col) }}
               </div>
             </div>
           </ng-container>

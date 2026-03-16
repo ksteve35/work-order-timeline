@@ -240,23 +240,12 @@ $work-center-left-offset: 31px;
   height: $header-height;
   border-bottom: $grid-border;
   background: #fff;
-
-  &.timeline-header-row--week-top {
-    display: flex;
-    border-bottom: none;
-  }
 }
 
-.timeline-header-row--period-top {
+// Top row for Week / Day / Hour views: flex container holding per-period labels
+.timeline-header-row--week-top {
   display: flex;
   border-bottom: none;
-}
-
-.timeline-cell--period-label {
-  flex: 1;
-  justify-content: center;
-  border-bottom: $grid-border;
-  border-right: none;
 }
 
 // --- Timeline cells -----------------------------------------------------------
@@ -275,13 +264,18 @@ $work-center-left-offset: 31px;
   &:last-child {
     border-right: none;
   }
+}
 
-  &.timeline-cell--week-label {
-    justify-content: flex-start;
-    padding-left: 8px;
-    border-bottom: $grid-border;
-    flex-shrink: 0;
-  }
+// Period label cells (top row for Day, Hour, Week views).
+// Each cell has an explicit [style.width.px] set from its group's column count,
+// so the label always covers exactly the columns it belongs to and stays
+// visible in the viewport as the user scrolls — unlike a single flex:1 cell
+// whose centered text would scroll out of view.
+.timeline-cell--week-label {
+  flex-shrink: 0;
+  justify-content: flex-start;
+  padding-left: 8px;
+  border-bottom: $grid-border;
 }
 
 // --- Data rows ----------------------------------------------------------------
