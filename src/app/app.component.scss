@@ -69,10 +69,12 @@ $work-center-left-offset: 31px;
 
 .timescale-selector-both {
   display: flex;
-  width: 146px;
+  width: auto;
   height: 25px;
   box-shadow: 1px 2.5px 3px -1.5px rgba(200, 207, 233, 1);
   border-radius: 5px;
+  overflow: visible;
+  position: relative;
 }
 
 .timescale-selector-left {
@@ -86,29 +88,70 @@ $work-center-left-offset: 31px;
   font-family: $page-font-family;
   font-size: 13px;
   font-weight: 500;
+  border-right: $grid-border;
 }
 
 .timescale-selector-right {
-  width: 71px;
   background-color: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
   border-radius: 0 5px 5px 0;
+  padding: 0 8px 0 8px;
+  gap: 6.53px;
   cursor: pointer;
+  user-select: none;
 }
 
-// The active timescale value shown in indigo to match the design
 .timescale-value {
   font-family: $page-font-family;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: rgba(62, 64, 219, 1);
+  line-height: 25px;
+  white-space: nowrap;
 }
 
 .timescale-chevron {
+  width: 8.47px;
+  height: 5px;
   flex-shrink: 0;
+  pointer-events: none;
+}
+
+.timescale-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 200px;
+  height: 136px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px rgba(104, 113, 150, 0.1),
+              0 2.5px 3px -1.5px rgba(200, 207, 233, 1),
+              0 4.5px 5px -1px rgba(216, 220, 235, 1);
+  z-index: 9999;
+  padding: 12px 0;
+  overflow: hidden;
+}
+
+.timescale-option {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  font-family: $page-font-family;
+  font-weight: 500;
+  font-size: 13px;
+  color: rgba(47, 48, 89, 1);
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(238, 240, 255, 1);
+  }
+
+  &--selected {
+    color: rgba(62, 64, 219, 1);
+  }
 }
 
 // --- Two-column flex wrapper --------------------------------------------------
@@ -118,6 +161,13 @@ $work-center-left-offset: 31px;
   border-top: $grid-border;
   border-left: $grid-border;
   overflow: hidden;
+  opacity: 1;
+  transition: opacity 100ms ease-in;
+
+  &--hidden {
+    opacity: 0;
+    transition: opacity 80ms ease-out;
+  }
 }
 
 // --- Left column (sticky work center labels) ----------------------------------
@@ -140,6 +190,10 @@ $work-center-left-offset: 31px;
   font-family: $page-font-family;
   font-size: 14px;
   font-weight: 400;
+}
+
+.work-center-header--double {
+  height: calc(#{$header-height} * 2);
 }
 
 .work-center-row {
@@ -169,6 +223,7 @@ $work-center-left-offset: 31px;
   flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
+  overflow-anchor: none; /* prevent browser scroll anchoring from fighting our manual scrollLeft corrections during prepend */
   scrollbar-width: none;
 
   &::-webkit-scrollbar {
@@ -176,7 +231,7 @@ $work-center-left-offset: 31px;
   }
 }
 
-// --- Timeline header row ------------------------------------------------------
+// --- Timeline header rows -----------------------------------------------------
 
 .timeline-header-row {
   display: grid;
@@ -184,6 +239,14 @@ $work-center-left-offset: 31px;
   border-bottom: $grid-border;
   background: #fff;
 }
+
+// Top row for Week / Day / Hour views: flex container holding per-period labels
+.timeline-header-row--week-top {
+  display: flex;
+  border-bottom: none;
+}
+
+// --- Timeline cells -----------------------------------------------------------
 
 .timeline-cell {
   display: flex;
@@ -199,6 +262,18 @@ $work-center-left-offset: 31px;
   &:last-child {
     border-right: none;
   }
+}
+
+// Period label cells (top row for Day, Hour, Week views).
+// Each cell has an explicit [style.width.px] set from its group's column count,
+// so the label always covers exactly the columns it belongs to and stays
+// visible in the viewport as the user scrolls — unlike a single flex:1 cell
+// whose centered text would scroll out of view.
+.timeline-cell--week-label {
+  flex-shrink: 0;
+  justify-content: flex-start;
+  padding-left: 8px;
+  border-bottom: $grid-border;
 }
 
 // --- Data rows ----------------------------------------------------------------
@@ -217,25 +292,7 @@ $work-center-left-offset: 31px;
   }
 }
 
-.timeline-cells-bg {
-  display: grid;
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-
-  .timeline-cell {
-    border-right: $grid-border;
-
-    &:last-child {
-      border-right: none;
-    }
-  }
-}
-
 // --- Work order bars ----------------------------------------------------------
-// Left and width are set inline (pixels) based on day index calculations.
-// The bar uses space-between so the label sits left and the badge sits right,
-// with 8px of padding-right so the badge has breathing room from the bar edge.
 
 .work-order-bar {
   position: absolute;
@@ -264,7 +321,6 @@ $work-center-left-offset: 31px;
   margin-right: 6px;
 }
 
-// Badge has no border — background + text color only, per the design
 .bar-status {
   display: flex;
   align-items: center;
@@ -279,8 +335,6 @@ $work-center-left-offset: 31px;
 }
 
 // --- Current period indicator -------------------------------------------------
-// A single absolutely positioned element spanning the full grid height
-// (header + all rows). Contains a label pill at the top and a line below.
 
 .timeline-grid {
   position: relative;
@@ -301,7 +355,7 @@ $work-center-left-offset: 31px;
   left: 0;
   height: 22px;
   padding: 0 8px;
-  border-radius: 6px;
+  border-radius: 5px;
   background-color: rgba(212, 215, 255, 1);
   color: rgba(62, 64, 219, 1);
   font-family: $page-font-family;
@@ -316,7 +370,18 @@ $work-center-left-offset: 31px;
   position: absolute;
   top: $header-height;
   left: 0;
-  width: 2px;
+  width: 1px;
   height: calc(100% - #{$header-height});
+  border: 3px solid rgba(212, 215, 255, 1);
   background-color: $grid-current-time-color;
+}
+
+// Week, Hour, Day views have two-row headers so indicator must clear both rows
+.timeline-grid--week .current-period-label,
+.timeline-grid--week .current-period-line,
+.timeline-grid--hour .current-period-label,
+.timeline-grid--hour .current-period-line,
+.timeline-grid--day .current-period-label,
+.timeline-grid--day .current-period-line {
+  top: calc(#{$header-height} * 2);
 }
