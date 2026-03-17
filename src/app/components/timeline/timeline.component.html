@@ -1,0 +1,116 @@
+<div class="timeline-body-wrapper" [class.timeline-body-wrapper--hidden]="!isReady">
+  <div class="left-column">
+    <div
+      class="work-center-header"
+      [class.work-center-header--double]="_activeTimescale !== 'Month'"
+    >Work Center</div>
+    <div class="work-center-row" *ngFor="let wc of workCenters; trackBy: trackByWcId">
+      {{ wc.data.name }}
+    </div>
+  </div>
+
+  <div class="right-column" #rightColumn>
+    <div
+      class="timeline-grid"
+      [class.timeline-grid--week]="_activeTimescale === 'Week'"
+      [class.timeline-grid--hour]="_activeTimescale === 'Hour'"
+      [class.timeline-grid--day]="_activeTimescale === 'Day'"
+      [style.width.px]="totalColumns * columnWidth"
+    >
+
+      <!-- WEEK: two-row header -->
+      <ng-container *ngIf="_activeTimescale === 'Week'">
+        <div class="timeline-header-row timeline-header-row--week-top">
+          <div
+            class="timeline-cell timeline-cell--week-label"
+            *ngFor="let group of weekGroups; trackBy: trackByIndex"
+            [style.width.px]="group.days.length * columnWidth"
+          >{{ group.label }}</div>
+        </div>
+        <div
+          class="timeline-header-row"
+          [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
+        >
+          <ng-container *ngFor="let group of weekGroups; trackBy: trackByIndex">
+            <div class="timeline-cell" *ngFor="let day of group.days; trackBy: trackByDate">
+              {{ getDayLabel(day) }}
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+
+      <!-- DAY: two-row header -->
+      <ng-container *ngIf="_activeTimescale === 'Day'">
+        <div class="timeline-header-row timeline-header-row--week-top">
+          <div
+            class="timeline-cell timeline-cell--week-label"
+            *ngFor="let group of monthGroups; trackBy: trackByIndex"
+            [style.width.px]="group.days.length * columnWidth"
+          >{{ group.label }}</div>
+        </div>
+        <div
+          class="timeline-header-row"
+          [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
+        >
+          <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
+            {{ getDayLabel(col) }}
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- HOUR: two-row header -->
+      <ng-container *ngIf="_activeTimescale === 'Hour'">
+        <div class="timeline-header-row timeline-header-row--week-top">
+          <div
+            class="timeline-cell timeline-cell--week-label"
+            *ngFor="let group of dayGroups; trackBy: trackByIndex"
+            [style.width.px]="group.hours.length * columnWidth"
+          >{{ group.label }}</div>
+        </div>
+        <div
+          class="timeline-header-row"
+          [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
+        >
+          <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
+            {{ getHourLabel(col) }}
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- MONTH: single-row header -->
+      <ng-container *ngIf="_activeTimescale === 'Month'">
+        <div
+          class="timeline-header-row"
+          [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
+        >
+          <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
+            {{ getMonthLabel(col) }}
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Data rows -->
+      <div
+        class="timeline-row"
+        [ngStyle]="gridBackgroundStyle"
+        *ngFor="let wc of workCenters; trackBy: trackByWcId"
+      >
+        <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId); trackBy: trackByOrderId">
+          <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
+            <span class="bar-label">{{ order.data.name }}</span>
+            <span class="bar-status" [ngStyle]="getStatusBadgeStyle(order.data.status)">
+              {{ getStatusLabel(order.data.status) }}
+            </span>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Current period indicator -->
+      <div class="current-period-indicator" [style.left.px]="getCurrentPeriodOffset()">
+        <div class="current-period-label">{{ getCurrentPeriodLabel() }}</div>
+        <div class="current-period-line"></div>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -5,136 +5,15 @@
   <div class="timeline-container">
     <div class="timeline-header">
       <div class="page-title">Work Orders</div>
-      <div class="timescale-selector">
-        <div class="timescale-selector-both">
-          <div class="timescale-selector-left">Timescale</div>
-          <div class="timescale-selector-right" (click)="toggleDropdown()">
-            <span class="timescale-value">{{ selectedTimescale }}</span>
-            <img src="/images/Down@4x.png" class="timescale-chevron" alt="" />
-            <div class="timescale-dropdown" *ngIf="dropdownOpen">
-              <div
-                class="timescale-option"
-                *ngFor="let opt of timescaleOptions"
-                [class.timescale-option--selected]="opt.value === selectedTimescale"
-                (click)="selectTimescale(opt.value); $event.stopPropagation()"
-              >{{ opt.label }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <app-timescale-selector
+        [selected]="selectedTimescale"
+        (selectedChange)="onTimescaleSelected($event)"
+      />
     </div>
-
-    <div class="timeline-body-wrapper" [class.timeline-body-wrapper--hidden]="!isReady">
-      <div class="left-column">
-        <div
-          class="work-center-header"
-          [class.work-center-header--double]="selectedTimescale !== 'Month'"
-        >Work Center</div>
-        <div class="work-center-row" *ngFor="let wc of workCenters; trackBy: trackByWcId">
-          {{ wc.data.name }}
-        </div>
-      </div>
-
-      <div class="right-column" #rightColumn>
-        <div
-          class="timeline-grid"
-          [class.timeline-grid--week]="selectedTimescale === 'Week'"
-          [class.timeline-grid--hour]="selectedTimescale === 'Hour'"
-          [class.timeline-grid--day]="selectedTimescale === 'Day'"
-          [style.width.px]="totalColumns * columnWidth"
-        >
-
-          <!-- WEEK: two-row header -->
-          <ng-container *ngIf="selectedTimescale === 'Week'">
-            <div class="timeline-header-row timeline-header-row--week-top">
-              <div
-                class="timeline-cell timeline-cell--week-label"
-                *ngFor="let group of weekGroups; trackBy: trackByIndex"
-                [style.width.px]="group.days.length * columnWidth"
-              >{{ group.label }}</div>
-            </div>
-            <div
-              class="timeline-header-row"
-              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
-            >
-              <ng-container *ngFor="let group of weekGroups; trackBy: trackByIndex">
-                <div class="timeline-cell" *ngFor="let day of group.days; trackBy: trackByDate">
-                  {{ getDayLabel(day) }}
-                </div>
-              </ng-container>
-            </div>
-          </ng-container>
-
-          <!-- DAY: two-row header -->
-          <ng-container *ngIf="selectedTimescale === 'Day'">
-            <div class="timeline-header-row timeline-header-row--week-top">
-              <div
-                class="timeline-cell timeline-cell--week-label"
-                *ngFor="let group of monthGroups; trackBy: trackByIndex"
-                [style.width.px]="group.days.length * columnWidth"
-              >{{ group.label }}</div>
-            </div>
-            <div
-              class="timeline-header-row"
-              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
-            >
-              <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
-                {{ getDayLabel(col) }}
-              </div>
-            </div>
-          </ng-container>
-
-          <!-- HOUR: two-row header -->
-          <ng-container *ngIf="selectedTimescale === 'Hour'">
-            <div class="timeline-header-row timeline-header-row--week-top">
-              <div
-                class="timeline-cell timeline-cell--week-label"
-                *ngFor="let group of dayGroups; trackBy: trackByIndex"
-                [style.width.px]="group.hours.length * columnWidth"
-              >{{ group.label }}</div>
-            </div>
-            <div
-              class="timeline-header-row"
-              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
-            >
-              <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
-                {{ getHourLabel(col) }}
-              </div>
-            </div>
-          </ng-container>
-
-          <!-- MONTH: single-row header -->
-          <ng-container *ngIf="selectedTimescale === 'Month'">
-            <div
-              class="timeline-header-row"
-              [style.gridTemplateColumns]="'repeat(' + totalColumns + ', ' + columnWidth + 'px)'"
-            >
-              <div class="timeline-cell" *ngFor="let col of timelineColumns; trackBy: trackByDate">
-                {{ getMonthLabel(col) }}
-              </div>
-            </div>
-          </ng-container>
-
-          <!-- Data rows -->
-          <div class="timeline-row" [ngStyle]="gridBackgroundStyle" *ngFor="let wc of workCenters; trackBy: trackByWcId">
-            <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId); trackBy: trackByOrderId">
-              <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
-                <span class="bar-label">{{ order.data.name }}</span>
-                <span class="bar-status" [ngStyle]="getStatusBadgeStyle(order.data.status)">
-                  {{ getStatusLabel(order.data.status) }}
-                </span>
-              </div>
-            </ng-container>
-          </div>
-
-          <!-- Current period indicator -->
-          <div class="current-period-indicator" [style.left.px]="getCurrentPeriodOffset()">
-            <div class="current-period-label">{{ getCurrentPeriodLabel() }}</div>
-            <div class="current-period-line"></div>
-          </div>
-
-        </div>
-      </div>
-    </div>
+    <app-timeline
+      [selectedTimescale]="selectedTimescale"
+      [workCenters]="workCenters"
+      [workOrders]="workOrders"
+    />
   </div>
 </div>
