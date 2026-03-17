@@ -120,7 +120,21 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   onTimescaleChange(newTimescale: Timescale): void {
     const el = this.rightColumn.nativeElement
-    const anchorDate = this.getDateAtPixel(el.scrollLeft)
+    let anchorDate = this.getDateAtPixel(el.scrollLeft)
+
+    // When leaving Month view, getDateAtPixel returns the 1st of the month.
+    // If today falls within the currently visible month, use today instead
+    // so the new view lands on the current period rather than the 1st.
+    if (this.selectedTimescale === 'Month') {
+      const today = new Date()
+      const visibleMonth = anchorDate
+      if (
+        today.getFullYear() === visibleMonth.getFullYear() &&
+        today.getMonth() === visibleMonth.getMonth()
+      ) {
+        anchorDate = today
+      }
+    }
     this.isReady = false
     this.isLoadingMore = true
     // Wait for the 80ms fade-out to complete, then swap content and fade in
