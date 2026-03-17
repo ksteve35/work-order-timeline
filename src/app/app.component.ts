@@ -135,7 +135,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         anchorDate = today
       }
     }
-    this.isReady = false
+    // When switching into Hour view, snap to midnight so 12 AM is the
+    // left-most column rather than whichever hour scrollLeft happens to land on.
+    if (newTimescale === 'Hour') {
+      anchorDate = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), anchorDate.getDate(), 0, 0, 0)
+    }
     this.isLoadingMore = true
     // Wait for the 80ms fade-out to complete, then swap content and fade in
     setTimeout(() => {
