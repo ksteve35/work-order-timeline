@@ -162,10 +162,11 @@ $work-center-left-offset: 31px;
   border-left: $grid-border;
   overflow: hidden;
   opacity: 1;
-  transition: opacity 150ms ease-in;
+  transition: opacity 100ms ease-in;
 
   &--hidden {
     opacity: 0;
+    transition: opacity 80ms ease-out;
   }
 }
 

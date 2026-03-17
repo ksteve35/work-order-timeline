@@ -121,14 +121,17 @@ export class AppComponent implements OnInit, AfterViewInit {
   onTimescaleChange(newTimescale: Timescale): void {
     const el = this.rightColumn.nativeElement
     const anchorDate = this.getDateAtPixel(el.scrollLeft)
-    this.selectedTimescale = newTimescale
+    this.isReady = false
     this.isLoadingMore = true
-    this.initializeRange(anchorDate)
+    // Wait for the 80ms fade-out to complete, then swap content and fade in
     setTimeout(() => {
+      this.selectedTimescale = newTimescale
+      this.initializeRange(anchorDate)
       this.cdr.detectChanges()
       this.scrollToDate(anchorDate, 'left')
+      this.isReady = true
       this.checkScrollEdges()
-    }, 0)
+    }, 80)
   }
 
   // ---------------------------------------------------------------------------
@@ -229,67 +232,58 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     const anchorDate = this.getDateAtPixel(el.scrollLeft)
-
-    // Capture the original column index of anchorDate BEFORE any mutations.
-    // colsFromStart() reads this.visibleStart by reference, so if we capture
-    // it after extend runs, it reflects the post-extend visibleStart and the
-    // delta calculation only sees the trim — missing the extend entirely.
-    // Math.floor(scrollLeft/columnWidth) is exactly what colsFromStart would
-    // return with the original visibleStart, without needing a snapshot.
     const originalAnchorCols = Math.floor(el.scrollLeft / this.columnWidth)
 
+    const extendingLeft  = colsFromStart(anchorDate) * this.columnWidth < bufPx
+    const extendingRight = el.scrollLeft + el.clientWidth > totalCols() * this.columnWidth - bufPx
+
     // --- Extend left until anchorDate is at least bufPx from left edge ---
-    while (colsFromStart(anchorDate) * this.columnWidth < bufPx) {
-      if (this.selectedTimescale === 'Month') {
-        const m = Math.round(cfg.loadDays / 30)
-        this.visibleStart = new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth() - m, 1)
-      } else {
-        this.visibleStart = this.addDays(this.visibleStart, -cfg.loadDays)
+    if (extendingLeft) {
+      while (colsFromStart(anchorDate) * this.columnWidth < bufPx) {
+        if (this.selectedTimescale === 'Month') {
+          const m = Math.round(cfg.loadDays / 30)
+          this.visibleStart = new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth() - m, 1)
+        } else {
+          this.visibleStart = this.addDays(this.visibleStart, -cfg.loadDays)
+        }
+      }
+      // Trim the distant future (right side) — no scrollLeft adjustment needed
+      const finalScrollLeft = colsFromStart(anchorDate) * this.columnWidth
+      const rightExcess = totalCols() * this.columnWidth - (finalScrollLeft + el.clientWidth) - keepPx
+      if (rightExcess > 0) {
+        if (this.selectedTimescale === 'Month') {
+          this.visibleEnd = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth() - Math.floor(rightExcess / this.columnWidth), 0)
+        } else if (this.selectedTimescale === 'Hour') {
+          this.visibleEnd = this.addDays(this.visibleEnd, -Math.floor(rightExcess / this.columnWidth / 24))
+        } else {
+          this.visibleEnd = this.addDays(this.visibleEnd, -Math.floor(rightExcess / this.columnWidth))
+        }
       }
     }
 
     // --- Extend right until right edge has at least bufPx of runway ---
-    while (el.scrollLeft + el.clientWidth > totalCols() * this.columnWidth - bufPx) {
-      if (this.selectedTimescale === 'Month') {
-        const m = Math.round(cfg.loadDays / 30)
-        this.visibleEnd = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth() + m + 1, 0)
-      } else {
-        this.visibleEnd = this.addDays(this.visibleEnd, cfg.loadDays)
+    if (extendingRight) {
+      while (el.scrollLeft + el.clientWidth > totalCols() * this.columnWidth - bufPx) {
+        if (this.selectedTimescale === 'Month') {
+          const m = Math.round(cfg.loadDays / 30)
+          this.visibleEnd = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth() + m + 1, 0)
+        } else {
+          this.visibleEnd = this.addDays(this.visibleEnd, cfg.loadDays)
+        }
       }
+      // Do NOT trim the left side here. Trimming left requires a scrollLeft
+      // correction to keep the user in place. Without it, visibleStart shifts
+      // forward while scrollLeft stays the same, effectively teleporting the
+      // user rightward on every trim — causing a runaway load loop.
+      // The left side will be trimmed naturally the next time the user scrolls
+      // left and extendingLeft fires.
     }
 
-    // --- Trim left: drop columns more than keepPx behind anchorDate ---
-    const postExtendAnchorCols = colsFromStart(anchorDate)
-    const leftExcess = postExtendAnchorCols * this.columnWidth - keepPx
-    if (leftExcess > 0) {
-      const oldStart = new Date(this.visibleStart)
-      if (this.selectedTimescale === 'Month') {
-        this.visibleStart = new Date(oldStart.getFullYear(), oldStart.getMonth() + Math.floor(leftExcess / this.columnWidth), 1)
-      } else if (this.selectedTimescale === 'Hour') {
-        this.visibleStart = this.addDays(oldStart, Math.floor(leftExcess / this.columnWidth / 24))
-      } else {
-        this.visibleStart = this.addDays(oldStart, Math.floor(leftExcess / this.columnWidth))
-      }
-    }
-
-    // --- Trim right: drop columns more than keepPx ahead of right edge ---
-    const finalAnchorCols = colsFromStart(anchorDate)
-    const finalScrollLeft = finalAnchorCols * this.columnWidth
-    const rightExcess = totalCols() * this.columnWidth - (finalScrollLeft + el.clientWidth) - keepPx
-    if (rightExcess > 0) {
-      if (this.selectedTimescale === 'Month') {
-        this.visibleEnd = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth() - Math.floor(rightExcess / this.columnWidth), 0)
-      } else if (this.selectedTimescale === 'Hour') {
-        this.visibleEnd = this.addDays(this.visibleEnd, -Math.floor(rightExcess / this.columnWidth / 24))
-      } else {
-        this.visibleEnd = this.addDays(this.visibleEnd, -Math.floor(rightExcess / this.columnWidth))
-      }
-    }
-
-    // Net scroll correction: finalAnchorCols (from final visibleStart to anchorDate)
-    // minus originalAnchorCols (from original visibleStart to anchorDate) gives the
-    // exact pixel shift needed to keep anchorDate at the same screen position.
-    const scrollDelta = (colsFromStart(anchorDate) - originalAnchorCols) * this.columnWidth
+    // scrollDelta only needed when extending left (visibleStart changed).
+    // When extending right, visibleStart is untouched so no correction needed.
+    const scrollDelta = extendingLeft
+      ? (colsFromStart(anchorDate) - originalAnchorCols) * this.columnWidth
+      : 0
 
     this.refreshColumnCache()
 
