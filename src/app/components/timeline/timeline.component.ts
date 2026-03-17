@@ -36,7 +36,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // Internal active timescale used by all rendering/scroll methods.
   // Kept one step behind selectedTimescale so ngOnChanges can read the
   // OLD timescale for anchor-date calculation before switching to the new one.
-  public _activeTimescale: Timescale = 'Month'
+  _activeTimescale: Timescale = 'Month'  // public for testability
 
   columnWidth = 114
   visibleStart!: Date
@@ -63,11 +63,12 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     this.initializeRange(new Date())
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    // Ignore the first change (handled by ngOnInit).
-    // On subsequent changes, _activeTimescale still holds the OLD timescale
-    // so getDateAtPixel and anchor-date logic run against the correct columns.
-    if (changes['selectedTimescale'] && !changes['selectedTimescale'].isFirstChange()) {
+  ngOnChanges(_changes: SimpleChanges): void {
+    // Compare state directly rather than inspecting the SimpleChanges structure.
+    // This works regardless of how SimpleChanges is shaped (e.g. in tests),
+    // and the _activeTimescale !== selectedTimescale guard naturally prevents
+    // the initial change (both are 'Month') from triggering a transition.
+    if (this._activeTimescale !== this.selectedTimescale) {
       this.handleTimescaleChange(this.selectedTimescale)
     }
   }
@@ -102,15 +103,31 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // ---------------------------------------------------------------------------
 
   private handleTimescaleChange(newTimescale: Timescale): void {
+    // Capture the OLD timescale before mutating anything. By the time Angular
+    // calls ngOnChanges, this.selectedTimescale is already the new value, so
+    // this._activeTimescale is the only reliable source of the old value.
+    const previousTimescale = this._activeTimescale
+
+    // Update synchronously so tests can read the new value immediately after
+    // calling ngOnChanges without needing to flush timers.
+    this._activeTimescale = newTimescale
+
+    // Guard all DOM operations — rightColumn doesn't exist in unit tests
+    if (!this.rightColumn?.nativeElement) return
+
     const el = this.rightColumn.nativeElement
 
-    // _activeTimescale is still the OLD timescale here — getDateAtPixel uses it
+    // getDateAtPixel reads _activeTimescale to interpret column positions.
+    // Temporarily restore the OLD timescale so it maps scrollLeft correctly
+    // against the current DOM columns, then switch back.
+    this._activeTimescale = previousTimescale
     let anchorDate = this.getDateAtPixel(el.scrollLeft)
+    this._activeTimescale = newTimescale
 
     // When leaving Month view, getDateAtPixel returns the 1st of the month.
     // If today falls within the visible month, use today instead so the new
     // view lands on the current period rather than the 1st.
-    if (this._activeTimescale === 'Month') {
+    if (previousTimescale === 'Month') {
       const today = new Date()
       if (
         today.getFullYear() === anchorDate.getFullYear() &&
@@ -141,7 +158,6 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
 
     // Wait for the 80ms fade-out to finish, then swap content and fade back in
     setTimeout(() => {
-      this._activeTimescale = newTimescale
       this.initializeRange(anchorDate)
       this.cdr.detectChanges()
       this.scrollToDate(anchorDate, 'left')

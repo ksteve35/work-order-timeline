@@ -6,7 +6,6 @@ type Timescale = 'Hour' | 'Day' | 'Week' | 'Month'
 @Component({
   selector: 'app-timescale-selector',
   imports: [CommonModule],
-  standalone: true,
   templateUrl: './timescale-selector.component.html',
   styleUrls: ['./timescale-selector.component.scss']
 })
@@ -31,6 +30,9 @@ export class TimescaleSelectorComponent {
     event.stopPropagation()
     this.dropdownOpen = false
     if (value !== this.selected) {
+      // Optimistically update selected so a second call with the same value
+      // is correctly treated as a no-op even before the parent updates the @Input.
+      this.selected = value
       this.selectedChange.emit(value)
     }
   }
