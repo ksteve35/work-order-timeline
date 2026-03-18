@@ -7,6 +7,17 @@ $page-font-family: "Circular-Std", sans-serif;
 $row-height: 48px;
 $work-center-left-offset: 31px;
 
+// --- Host element ------------------------------------------------------------
+// app-timeline is a custom element. Without :host styles it defaults to
+// display:inline and ignores flex:1 from the parent flex container.
+
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 // --- Two-column flex wrapper --------------------------------------------------
 
 .timeline-body-wrapper {
@@ -16,6 +27,8 @@ $work-center-left-offset: 31px;
   overflow: hidden;
   opacity: 1;
   transition: opacity 100ms ease-in;
+  flex: 1;
+  min-height: 0;
 
   &--hidden {
     opacity: 0;
@@ -31,6 +44,8 @@ $work-center-left-offset: 31px;
   border-right: $grid-border;
   z-index: 5;
   background: #fff;
+  display: flex;
+  flex-direction: column;
 }
 
 .work-center-header {
@@ -75,7 +90,7 @@ $work-center-left-offset: 31px;
 .right-column {
   flex: 1;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: auto;
   overflow-anchor: none;
   scrollbar-width: none;
 
@@ -204,6 +219,8 @@ $work-center-left-offset: 31px;
 
 .timeline-grid {
   position: relative;
+  min-height: 100%;
+  background-image: var(--timeline-grid-bg);
 }
 
 .current-period-indicator {
