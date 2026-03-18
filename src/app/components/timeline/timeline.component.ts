@@ -492,8 +492,10 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   get gridBackgroundStyle(): { [k: string]: string } {
     const w = this.columnWidth
     const border = 'rgba(230, 235, 240, 1)'
+    // Set as a CSS variable on .timeline-grid so the gradient covers the full
+    // grid height rather than being repeated per row.
     return {
-      'background-image': `repeating-linear-gradient(to right, transparent 0px, transparent ${w - 1}px, ${border} ${w - 1}px, ${border} ${w}px)`
+      '--timeline-grid-bg': `repeating-linear-gradient(to right, transparent 0px, transparent ${w - 1}px, ${border} ${w - 1}px, ${border} ${w}px)`
     }
   }
 

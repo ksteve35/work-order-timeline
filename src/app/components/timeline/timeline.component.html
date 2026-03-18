@@ -16,6 +16,7 @@
       [class.timeline-grid--hour]="_activeTimescale === 'Hour'"
       [class.timeline-grid--day]="_activeTimescale === 'Day'"
       [style.width.px]="totalColumns * columnWidth"
+      [ngStyle]="gridBackgroundStyle"
     >
 
       <!-- WEEK: two-row header -->
@@ -92,7 +93,6 @@
       <!-- Data rows -->
       <div
         class="timeline-row"
-        [ngStyle]="gridBackgroundStyle"
         *ngFor="let wc of workCenters; trackBy: trackByWcId"
       >
         <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId); trackBy: trackByOrderId">

@@ -7,9 +7,17 @@ $page-left-offset: 101px;
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 .page-content {
   padding-left: $page-left-offset;
   font-family: $page-font-family;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .naologic-logo-container {
@@ -28,7 +36,8 @@ $page-left-offset: 101px;
 .timeline-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   font-family: $page-font-family;
 }
 
