@@ -101,7 +101,7 @@
             <span class="bar-status" [ngStyle]="getStatusBadgeStyle(order.data.status)">
               {{ getStatusLabel(order.data.status) }}
             </span>
-            <button class="bar-menu-btn" type="button">
+            <button class="bar-menu-btn" type="button" (click)="toggleOrderMenu(order.docId, $event)">
               <svg width="14" height="4" viewBox="0 0 14 4" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="2"  cy="2" r="1.5" fill="rgba(104, 113, 150, 1)"/>
                 <circle cx="7"  cy="2" r="1.5" fill="rgba(104, 113, 150, 1)"/>
@@ -110,6 +110,18 @@
             </button>
           </div>
         </ng-container>
+      </div>
+
+      <!-- Order context menu — rendered at grid level to escape bar stacking context -->
+      <div
+        class="bar-order-menu"
+        *ngIf="openMenuOrderId !== null"
+        [style.top.px]="orderMenuTop"
+        [style.left.px]="orderMenuLeft"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="bar-order-menu-option" (click)="onEditOrder(openMenuOrderId!, $event)">Edit</div>
+        <div class="bar-order-menu-option bar-order-menu-option--delete" (click)="onDeleteOrder(openMenuOrderId!, $event)">Delete</div>
       </div>
 
       <!-- Current period indicator -->

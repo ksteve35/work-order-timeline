@@ -163,10 +163,15 @@ $work-center-left-offset: 31px;
   font-size: 12px;
   font-family: $page-font-family;
   white-space: nowrap;
-  overflow: hidden;
+  // overflow: hidden removed — .bar-label handles its own text clipping,
+  // and the dropdown menu must not be clipped by the bar container.
   cursor: pointer;
   z-index: 1;
-  box-sizing: border-box; // ensures border is included in width so +1/-2 inset is exact
+  box-sizing: border-box;
+
+  &:hover {
+    z-index: 2; // raise above overlapping bars so button and menu are always accessible
+  }
 }
 
 .bar-label {
@@ -213,6 +218,46 @@ $work-center-left-offset: 31px;
 
 .work-order-bar:hover .bar-menu-btn {
   display: flex;
+}
+
+.bar-order-menu {
+  position: absolute;
+  width: 200px;
+  height: 80px;
+  background-color: rgba(255, 255, 255, 1);
+  border-radius: 5px;
+  box-shadow: 0 0 0 1px rgba(104, 113, 150, 0.1),
+              0 2.5px 3px -1.5px rgba(200, 207, 233, 1),
+              0 4.5px 5px -1px rgba(216, 220, 235, 1);
+  z-index: 9999;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.bar-order-menu-option {
+  height: 28px;
+  min-height: 28px;
+  max-height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  font-family: $page-font-family;
+  font-weight: 500;
+  font-size: 13px;
+  color: rgba(47, 48, 89, 1);
+  cursor: pointer;
+  box-sizing: border-box;
+
+  &:hover {
+    background: rgba(238, 240, 255, 1);
+  }
+
+  &--delete {
+    color: rgba(62, 64, 219, 1);
+  }
 }
 
 // --- Current period indicator -------------------------------------------------
