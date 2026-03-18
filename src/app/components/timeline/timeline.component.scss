@@ -158,6 +158,7 @@ $work-center-left-offset: 31px;
   overflow: hidden;
   cursor: pointer;
   z-index: 1;
+  box-sizing: border-box; // ensures border is included in width so +1/-2 inset is exact
 }
 
 .bar-label {
