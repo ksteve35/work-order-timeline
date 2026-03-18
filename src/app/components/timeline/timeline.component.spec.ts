@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing'
+import { TestBed, fakeAsync, tick } from '@angular/core/testing'
 import { TimelineComponent } from './timeline.component'
 import { SimpleChanges } from '@angular/core'
 
@@ -9,32 +9,41 @@ describe('TimelineComponent', () => {
     }).compileComponents()
   })
 
-  it('should set activeTimescale to selected timescale on input change', () => {
+  it('should set activeTimescale to selected timescale on input change', fakeAsync(() => {
     const fixture = TestBed.createComponent(TimelineComponent)
     const app = fixture.componentInstance
-    const constructChangesObj = (
-      currentValue: any,
-      previousValue: any,
-      firstChange: any,
-      isFirstChange: any
-    ): SimpleChanges => ({
-      currentValue,
-      previousValue,
-      firstChange,
-      isFirstChange
+
+    // ngOnInit must run first to set up _activeTimescale initial state
+    fixture.detectChanges()
+
+    const makeChange = (currentValue: any, previousValue: any): SimpleChanges => ({
+      selectedTimescale: {
+        currentValue,
+        previousValue,
+        firstChange: false,
+        isFirstChange: () => false
+      }
     })
+
     app.selectedTimescale = 'Day'
-    app.ngOnChanges(constructChangesObj('Day', 'Month', false, () => false))
+    app.ngOnChanges(makeChange('Day', 'Month'))
+    // _activeTimescale updates inside setTimeout(80) — flush it
+    tick(80)
     expect(app._activeTimescale).toBe('Day')
+
     app.selectedTimescale = 'Hour'
-    app.ngOnChanges(constructChangesObj('Hour', 'Day', false, () => false))
+    app.ngOnChanges(makeChange('Hour', 'Day'))
+    tick(80)
     expect(app._activeTimescale).toBe('Hour')
+
     app.selectedTimescale = 'Week'
-    app.ngOnChanges(constructChangesObj('Week', 'Hour', false, () => false))
+    app.ngOnChanges(makeChange('Week', 'Hour'))
+    tick(80)
     expect(app._activeTimescale).toBe('Week')
+
     app.selectedTimescale = 'Month'
-    app.ngOnChanges(constructChangesObj('Month', 'Week', false, () => false))
+    app.ngOnChanges(makeChange('Month', 'Week'))
+    tick(80)
     expect(app._activeTimescale).toBe('Month')
-  })
-  
+  }))
 })
