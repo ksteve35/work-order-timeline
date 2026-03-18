@@ -51,6 +51,41 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   private _cachedDayColumns: Date[] = []
   private isLoadingMore = false
   isReady = false
+  openMenuOrderId: string | null = null
+  orderMenuTop  = 0
+  orderMenuLeft = 0
+
+  toggleOrderMenu(orderId: string, event: MouseEvent): void {
+    event.stopPropagation()
+    if (this.openMenuOrderId === orderId) {
+      this.openMenuOrderId = null
+      return
+    }
+    // Calculate position relative to .timeline-grid so the menu can be
+    // rendered as a direct child of the grid, escaping the bar's stacking
+    // context (which would otherwise clip it regardless of z-index).
+    const btn   = (event.currentTarget as HTMLElement)
+    const grid  = this.rightColumn.nativeElement.querySelector('.timeline-grid') as HTMLElement
+    const btnR  = btn.getBoundingClientRect()
+    const gridR = grid.getBoundingClientRect()
+    this.orderMenuTop  = btnR.bottom - gridR.top + 4
+    this.orderMenuLeft = btnR.left - gridR.left
+    this.openMenuOrderId = orderId
+  }
+
+  onEditOrder(orderId: string, event: MouseEvent): void {
+    event.stopPropagation()
+    this.openMenuOrderId = null
+    // TODO: wire up edit panel
+    console.log('Edit order', orderId)
+  }
+
+  onDeleteOrder(orderId: string, event: MouseEvent): void {
+    event.stopPropagation()
+    this.openMenuOrderId = null
+    // TODO: wire up delete
+    console.log('Delete order', orderId)
+  }
 
   constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
 
@@ -87,6 +122,12 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
 
     this.ngZone.runOutsideAngular(() => {
       el.addEventListener('scroll', () => this.onScroll())
+    })
+
+    document.addEventListener('click', () => {
+      if (this.openMenuOrderId !== null) {
+        this.openMenuOrderId = null
+      }
     })
 
     setTimeout(() => {
@@ -419,6 +460,8 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
 
   getDayLabel(date: Date):   string { return date.toLocaleString('default', { month: 'short', day: 'numeric' }) }
   getMonthLabel(date: Date): string { return date.toLocaleString('default', { month: 'short', year: 'numeric' }) }
+
+  private readonly weekdayAbbr = ['Sun', 'Mon', 'Tues', 'Weds', 'Thur', 'Fri', 'Sat']
 
   getWeekDayLabel(date: Date): string {
     return date.toLocaleString('default', { weekday: 'short', month: 'short', day: 'numeric' })
