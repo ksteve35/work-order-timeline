@@ -420,6 +420,10 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   getDayLabel(date: Date):   string { return date.toLocaleString('default', { month: 'short', day: 'numeric' }) }
   getMonthLabel(date: Date): string { return date.toLocaleString('default', { month: 'short', year: 'numeric' }) }
 
+  getWeekDayLabel(date: Date): string {
+    return date.toLocaleString('default', { weekday: 'short', month: 'short', day: 'numeric' })
+  }
+
   // ---------------------------------------------------------------------------
   // Bar positioning
   // ---------------------------------------------------------------------------

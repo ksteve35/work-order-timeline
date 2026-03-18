@@ -33,7 +33,7 @@
         >
           <ng-container *ngFor="let group of weekGroups; trackBy: trackByIndex">
             <div class="timeline-cell" *ngFor="let day of group.days; trackBy: trackByDate">
-              {{ getDayLabel(day) }}
+              {{ getWeekDayLabel(day) }}
             </div>
           </ng-container>
         </div>
