@@ -103,30 +103,21 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // ---------------------------------------------------------------------------
 
   private handleTimescaleChange(newTimescale: Timescale): void {
-    // Capture the OLD timescale before mutating anything. By the time Angular
-    // calls ngOnChanges, this.selectedTimescale is already the new value, so
-    // this._activeTimescale is the only reliable source of the old value.
+    // _activeTimescale is the only reliable source of the old timescale.
+    // this.selectedTimescale is already the new value by the time ngOnChanges fires.
     const previousTimescale = this._activeTimescale
 
-    // Update synchronously so tests can read the new value immediately after
-    // calling ngOnChanges without needing to flush timers.
-    this._activeTimescale = newTimescale
-
-    // Guard all DOM operations — rightColumn doesn't exist in unit tests
-    if (!this.rightColumn?.nativeElement) return
-
-    const el = this.rightColumn.nativeElement
-
-    // getDateAtPixel reads _activeTimescale to interpret column positions.
-    // Temporarily restore the OLD timescale so it maps scrollLeft correctly
-    // against the current DOM columns, then switch back.
-    this._activeTimescale = previousTimescale
-    let anchorDate = this.getDateAtPixel(el.scrollLeft)
-    this._activeTimescale = newTimescale
+    // Calculate anchorDate NOW while _activeTimescale still reflects the old
+    // timescale and the DOM still has the old columns.
+    // Guard: rightColumn doesn't exist in unit tests.
+    let anchorDate: Date = new Date()
+    if (this.rightColumn?.nativeElement) {
+      // _activeTimescale is still old here — getDateAtPixel reads it correctly
+      anchorDate = this.getDateAtPixel(this.rightColumn.nativeElement.scrollLeft)
+    }
 
     // When leaving Month view, getDateAtPixel returns the 1st of the month.
-    // If today falls within the visible month, use today instead so the new
-    // view lands on the current period rather than the 1st.
+    // If today falls within the visible month, use today instead.
     if (previousTimescale === 'Month') {
       const today = new Date()
       if (
@@ -137,12 +128,9 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
       }
     }
 
-    // When switching into Hour view, preserve the hour so scrollToDate lands
-    // on the actual current time. initializeRange uses startOfDay internally
-    // so the grid always starts at midnight regardless of the hour here.
+    // When switching into Hour view, use the real current time if anchorDate is today.
     if (newTimescale === 'Hour') {
       const now = new Date()
-      // If anchorDate is today, use the real current time so we scroll to now
       if (
         anchorDate.getFullYear() === now.getFullYear() &&
         anchorDate.getMonth()    === now.getMonth()    &&
@@ -150,19 +138,26 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
       ) {
         anchorDate = now
       }
-      // Otherwise keep anchorDate as-is (midnight from startOfDay is fine for other days)
     }
 
+    // Fade out BEFORE changing _activeTimescale. If _activeTimescale were updated
+    // here, Angular's next CD cycle would re-render the template with the new
+    // timescale's content before the fade-out completes — the content would visually
+    // swap, then disappear, then reappear. Setting isReady = false first means the
+    // old content fades out cleanly, then the new content fades in.
     this.isReady = false
     this.isLoadingMore = true
 
-    // Wait for the 80ms fade-out to finish, then swap content and fade back in
     setTimeout(() => {
+      // Now safe to update — the fade-out has completed
+      this._activeTimescale = newTimescale
       this.initializeRange(anchorDate)
       this.cdr.detectChanges()
-      this.scrollToDate(anchorDate, 'left')
+      if (this.rightColumn?.nativeElement) {
+        this.scrollToDate(anchorDate, 'left')
+        this.checkScrollEdges()
+      }
       this.isReady = true
-      this.checkScrollEdges()
     }, 80)
   }
 
