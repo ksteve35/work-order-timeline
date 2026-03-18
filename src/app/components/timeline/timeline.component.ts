@@ -420,6 +420,10 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   getDayLabel(date: Date):   string { return date.toLocaleString('default', { month: 'short', day: 'numeric' }) }
   getMonthLabel(date: Date): string { return date.toLocaleString('default', { month: 'short', year: 'numeric' }) }
 
+  getWeekDayLabel(date: Date): string {
+    return date.toLocaleString('default', { weekday: 'short', month: 'short', day: 'numeric' })
+  }
+
   // ---------------------------------------------------------------------------
   // Bar positioning
   // ---------------------------------------------------------------------------
@@ -441,9 +445,12 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   getBarStyleObject(order: WorkOrderDocument): { [k: string]: string } {
     const s = this.getColumnIndex(order.data.startDate)
     const e = this.getColumnIndex(order.data.endDate) + 1
+    // Inset 1px from each column edge so the bar never touches the adjacent
+    // column's border — without this the bar right edge lands exactly on the
+    // next column's 1px border, causing a visual collision.
     return {
-      left:               `${s * this.columnWidth}px`,
-      width:              `${(e - s) * this.columnWidth}px`,
+      left:               `${s * this.columnWidth + 1}px`,
+      width:              `${(e - s) * this.columnWidth - 2}px`,
       'background-color': this.getStatusBgColor(order.data.status),
       border:             `1px solid ${this.getStatusBorderColor(order.data.status)}`
     }

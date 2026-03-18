@@ -105,15 +105,11 @@ $work-center-left-offset: 31px;
   align-items: center;
   justify-content: center;
   height: 100%;
-  border-right: $grid-border;
+  // No border-right — vertical borders removed from header cells
   color: rgba(104, 113, 150, 1);
   font-family: $page-font-family;
   font-size: 14px;
   font-weight: 400;
-
-  &:last-child {
-    border-right: none;
-  }
 }
 
 .timeline-cell--week-label {
@@ -121,6 +117,7 @@ $work-center-left-offset: 31px;
   justify-content: flex-start;
   padding-left: 8px;
   border-bottom: $grid-border;
+  box-sizing: border-box;
 }
 
 // --- Data rows ----------------------------------------------------------------
@@ -128,11 +125,7 @@ $work-center-left-offset: 31px;
 .timeline-row {
   height: $row-height;
   position: relative;
-  border-top: $grid-border;
-
-  &:last-child {
-    border-bottom: $grid-border;
-  }
+  // No border-top / border-bottom — horizontal borders removed from data rows
 
   &:hover {
     background: rgba(238, 240, 255, 1);
@@ -145,7 +138,7 @@ $work-center-left-offset: 31px;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  height: 24px;
+  height: 38px;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -158,6 +151,7 @@ $work-center-left-offset: 31px;
   overflow: hidden;
   cursor: pointer;
   z-index: 1;
+  box-sizing: border-box; // ensures border is included in width so +1/-2 inset is exact
 }
 
 .bar-label {
@@ -165,20 +159,45 @@ $work-center-left-offset: 31px;
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
-  margin-right: 6px;
+  padding-right: 120px;
 }
 
 .bar-status {
+  position: absolute;
+  right: 36px;
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  height: 16px;
+  height: 22px;
   font-size: 11px;
   font-weight: 500;
   padding: 0 6px;
-  border-radius: 10px;
+  border-radius: 5px;
   white-space: nowrap;
-  margin-right: 36px;
+}
+
+.bar-menu-btn {
+  position: absolute;
+  right: 6px;
+  flex-shrink: 0;
+  width: 24px;
+  height: 22px;
+  border-radius: 5px;
+  background-color: rgba(241, 243, 248, 1);
+  border: none;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+
+  &:hover {
+    background-color: rgba(225, 228, 240, 1);
+  }
+}
+
+.work-order-bar:hover .bar-menu-btn {
+  display: flex;
 }
 
 // --- Current period indicator -------------------------------------------------
@@ -193,7 +212,8 @@ $work-center-left-offset: 31px;
   bottom: 0;
   width: 0;
   pointer-events: none;
-  z-index: 3;
+  // No z-index on the container — label and line have their own z-index
+  // so they can straddle the work order bars independently.
 }
 
 .current-period-label {
@@ -211,6 +231,7 @@ $work-center-left-offset: 31px;
   display: flex;
   align-items: center;
   white-space: nowrap;
+  z-index: 2; // above work order bars (z-index: 1)
 }
 
 .current-period-line {
@@ -221,6 +242,7 @@ $work-center-left-offset: 31px;
   height: calc(100% - #{$header-height});
   border: 3px solid rgba(212, 215, 255, 1);
   background-color: $grid-current-time-color;
+  z-index: 0; // below work order bars (z-index: 1)
 }
 
 .timeline-grid--week .current-period-label,
