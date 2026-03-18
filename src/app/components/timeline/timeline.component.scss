@@ -105,15 +105,11 @@ $work-center-left-offset: 31px;
   align-items: center;
   justify-content: center;
   height: 100%;
-  border-right: $grid-border;
+  // No border-right — vertical borders removed from header cells
   color: rgba(104, 113, 150, 1);
   font-family: $page-font-family;
   font-size: 14px;
   font-weight: 400;
-
-  &:last-child {
-    border-right: none;
-  }
 }
 
 .timeline-cell--week-label {
@@ -121,6 +117,7 @@ $work-center-left-offset: 31px;
   justify-content: flex-start;
   padding-left: 8px;
   border-bottom: $grid-border;
+  box-sizing: border-box;
 }
 
 // --- Data rows ----------------------------------------------------------------
@@ -128,11 +125,7 @@ $work-center-left-offset: 31px;
 .timeline-row {
   height: $row-height;
   position: relative;
-  border-top: $grid-border;
-
-  &:last-child {
-    border-bottom: $grid-border;
-  }
+  // No border-top / border-bottom — horizontal borders removed from data rows
 
   &:hover {
     background: rgba(238, 240, 255, 1);
