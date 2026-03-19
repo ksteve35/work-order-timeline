@@ -69,6 +69,7 @@
         ngbDatepicker
         #startPicker="ngbDatepicker"
         (click)="startPicker.toggle()"
+        (dateSelect)="checkOverlap()"
         datepickerClass="panel-datepicker"
         [class.panel-input--error]="form.get('startDate')?.invalid && form.get('startDate')?.touched"
         readonly
@@ -88,6 +89,7 @@
         ngbDatepicker
         #endPicker="ngbDatepicker"
         (click)="endPicker.toggle()"
+        (dateSelect)="checkOverlap()"
         datepickerClass="panel-datepicker"
         [class.panel-input--error]="form.get('endDate')?.invalid && form.get('endDate')?.touched"
         readonly

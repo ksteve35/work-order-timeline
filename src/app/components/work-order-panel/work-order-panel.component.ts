@@ -1,9 +1,10 @@
 import {
-  Component, EventEmitter, Injectable, Input, OnChanges,
-  OnInit, Output, SimpleChanges
+  ChangeDetectorRef, Component, EventEmitter, Injectable, Input, OnChanges,
+  OnDestroy, OnInit, Output, SimpleChanges
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms'
+import { Subject, takeUntil } from 'rxjs'
 import { NgbDatepickerModule, NgbDateStruct, NgbDateParserFormatter } from '@ng-bootstrap/ng-bootstrap'
 import { NgSelectModule } from '@ng-select/ng-select'
 import { WorkCenterDocument, WorkOrderDocument, WorkOrderStatus } from '../../models/documents.model'
@@ -43,7 +44,9 @@ export interface PanelWorkOrder {
   styleUrls: ['./work-order-panel.component.scss'],
 
 })
-export class WorkOrderPanelComponent implements OnInit, OnChanges {
+export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
+
+  constructor(private cdr: ChangeDetectorRef) {}
   @Input()  mode: 'create' | 'edit' = 'create'
   @Input()  initialData?: Partial<PanelWorkOrder>
   @Input()  workCenters: WorkCenterDocument[] = []
@@ -53,6 +56,7 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges {
 
   form!: FormGroup
   overlapError = false
+  private destroy$ = new Subject<void>()
 
   statusOptions: { label: string; value: WorkOrderStatus }[] = [
     { label: 'Open',        value: 'open'        },
@@ -87,6 +91,13 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges {
       startDate: new FormControl(this.toNgbDate(startDate),          Validators.required),
       endDate:   new FormControl(this.toNgbDate(endDate),            Validators.required)
     })
+
+    // Overlap is checked via (dateSelect) in the template — fires reliably in-zone
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next()
+    this.destroy$.complete()
   }
 
   private patchForm(): void {
@@ -99,37 +110,42 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges {
     })
   }
 
+  checkOverlap(): void {
+    const v = this.form.value
+    const s = v.startDate, e = v.endDate
+    // Guard: only check when both controls hold a fully populated NgbDateStruct
+    if (!s?.year || !s?.month || !s?.day || !e?.year || !e?.month || !e?.day) {
+      this.overlapError = false
+      return
+    }
+    const startDate = this.fromNgbDate(s)
+    const endDate   = this.fromNgbDate(e)
+    const wcId      = this.initialData?.workCenterId ?? ''
+    this.overlapError = this.existingOrders.some(o => {
+      if (o.data.workCenterId !== wcId) return false
+      if (this.isEdit && o.docId === this.initialData?.docId) return false
+      return startDate <= o.data.endDate && endDate >= o.data.startDate
+    })
+  }
+
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched()
       return
     }
 
-    const v         = this.form.value
-    const startDate = this.fromNgbDate(v.startDate)
-    const endDate   = this.fromNgbDate(v.endDate)
-    const wcId      = this.initialData?.workCenterId ?? ''
+    this.checkOverlap()
+    if (this.overlapError) return
 
-    // Overlap validation
-    const overlap = this.existingOrders.some(o => {
-      if (o.data.workCenterId !== wcId) return false
-      if (this.isEdit && o.docId === this.initialData?.docId) return false
-      return startDate <= o.data.endDate && endDate >= o.data.startDate
-    })
-
-    if (overlap) {
-      this.overlapError = true
-      return
-    }
-
-    this.overlapError = false
+    const v    = this.form.value
+    const wcId = this.initialData?.workCenterId ?? ''
     this.save.emit({
       docId:        this.initialData?.docId,
       workCenterId: wcId,
       name:         v.name,
       status:       v.status,
-      startDate,
-      endDate
+      startDate:    this.fromNgbDate(v.startDate),
+      endDate:      this.fromNgbDate(v.endDate)
     })
   }
 
