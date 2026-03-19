@@ -94,7 +94,16 @@
       <div
         class="timeline-row"
         *ngFor="let wc of workCenters; trackBy: trackByWcId"
+        (mousemove)="onRowMousemove($event, wc.docId)"
+        (mouseleave)="onRowMouseleave()"
       >
+        <!-- Hover ghost: empty slot preview shown over unoccupied columns -->
+        <div
+          class="timeline-row-ghost"
+          *ngIf="hoverGhost && hoverGhost.wcId === wc.docId"
+          [style.left.px]="hoverGhost.left"
+          (click)="openCreatePanel(wc.docId, hoverGhost.left / columnWidth)"
+        ></div>
         <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId); trackBy: trackByOrderId">
           <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
             <span class="bar-label">{{ order.data.name }}</span>
@@ -120,7 +129,7 @@
         [style.left.px]="orderMenuLeft"
         (click)="$event.stopPropagation()"
       >
-        <div class="bar-order-menu-option" (click)="onEditOrder(openMenuOrderId!, $event)">Edit</div>
+        <div class="bar-order-menu-option" (click)="openEditPanel(getOrderById(openMenuOrderId!)); $event.stopPropagation()">Edit</div>
         <div class="bar-order-menu-option bar-order-menu-option--delete" (click)="onDeleteOrder(openMenuOrderId!, $event)">Delete</div>
       </div>
 
@@ -133,3 +142,14 @@
     </div>
   </div>
 </div>
+
+<!-- Work order panel (create / edit) -->
+<app-work-order-panel
+  *ngIf="panelMode !== null"
+  [mode]="panelMode!"
+  [initialData]="panelInitial"
+  [workCenters]="workCenters"
+  [existingOrders]="workOrders"
+  (save)="onPanelSave($event)"
+  (cancel)="onPanelCancel()"
+/>

@@ -7,3 +7,52 @@ body {
 body {
   overflow: hidden;
 }
+
+$page-font-family: "Circular-Std", sans-serif;
+
+/* Work order panel — datepicker popup styles                               */
+/* These must be global because ngb-datepicker is appended outside the      */
+/* component DOM. Add to the BOTTOM of your existing styles.scss            */
+
+ngb-datepicker.panel-datepicker {
+  background-color: #fff;
+  border: 1px solid rgba(230, 235, 240, 1);
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgba(104, 113, 150, 0.1),
+              0 4px 12px rgba(200, 207, 233, 0.6);
+  font-family: "Circular-Std", sans-serif;
+  z-index: 9999;
+}
+
+ngb-datepicker.panel-datepicker .ngb-dp-header {
+  background-color: #fff;
+  padding: 8px;
+}
+
+ngb-datepicker.panel-datepicker .ngb-dp-months,
+ngb-datepicker.panel-datepicker .ngb-dp-month,
+ngb-datepicker.panel-datepicker .ngb-dp-week {
+  background-color: #fff;
+}
+
+ngb-datepicker.panel-datepicker .ngb-dp-weekday {
+  font-family: "Circular-Std", sans-serif;
+  font-size: 12px;
+  color: rgba(104, 113, 150, 1);
+}
+
+ngb-datepicker.panel-datepicker .ngb-dp-day .btn-light {
+  font-family: "Circular-Std", sans-serif;
+  font-size: 13px;
+  border-radius: 4px;
+  color: rgba(3, 9, 41, 1);
+}
+
+ngb-datepicker.panel-datepicker .ngb-dp-day .btn-light:hover {
+  background-color: rgba(238, 240, 255, 1);
+}
+
+ngb-datepicker.panel-datepicker .ngb-dp-day .btn-light.bg-primary {
+  background-color: rgba(62, 64, 219, 1) !important;
+  color: #fff !important;
+}
