@@ -93,7 +93,7 @@ $page-font-family: "Circular-Std", sans-serif;
 
   &--cancel {
     color: rgba(47, 48, 89, 1);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 1) , 0 1px 3px 0 rgba(200, 207, 233, 1);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 1), 0 1px 3px 0 rgba(200, 207, 233, 1);
     border: 1px solid rgba(255, 255, 255, 1);
     border-radius: 7px;
     background-color: rgba(255, 255, 255, 1);
@@ -105,7 +105,7 @@ $page-font-family: "Circular-Std", sans-serif;
 
   &--submit {
     color: #fff;
-    box-shadow: 0 0 0 1px rgba(86, 89, 255, 1) , 0 1px 3px 0 rgba(200, 207, 233, 1);
+    box-shadow: 0 0 0 1px rgba(86, 89, 255, 1), 0 1px 3px 0 rgba(200, 207, 233, 1);
     border: none;
     border-radius: 7px;
     background-color: rgba(86, 89, 255, 1);
@@ -144,7 +144,7 @@ $page-font-family: "Circular-Std", sans-serif;
   height: 38px;
   width: 100%;
   padding: 0 8.64px 0 19.66px;
-  box-shadow: 0 0 0 1px rgba(216, 220, 235, 1) , 0 1.5px 3px -1.5px rgba(200, 207, 233, 1) , 0 1px 0.5px -1px rgba(216, 220, 235, 1);
+  box-shadow: 0 0 0 1px rgba(216, 220, 235, 1), 0 1.5px 3px -1.5px rgba(200, 207, 233, 1), 0 1px 0.5px -1px rgba(216, 220, 235, 1);
   border: 1px solid rgba(216, 220, 235, 1);
   border-radius: 5px;
   background-color: rgba(255, 255, 255, 1);
@@ -189,32 +189,47 @@ $page-font-family: "Circular-Std", sans-serif;
   padding: 10px 14px;
 }
 
+// --- Status badge (selected value + dropdown option) -------------------------
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 10px;
+  font-family: $page-font-family;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
 // --- ng-select inside panel --------------------------------------------------
 
 :host ::ng-deep .panel-ng-select.ng-select .ng-select-container {
-  height: 40px;
-  min-height: 40px;
-  border: 1px solid rgba(230, 235, 240, 1);
-  border-radius: 6px;
+  height: 38px;
+  min-height: 38px;
+  box-shadow: 0 0 0 1px rgba(216, 220, 235, 1), 0 1.5px 3px -1.5px rgba(200, 207, 233, 1), 0 1px 0.5px -1px rgba(216, 220, 235, 1);
+  border: 1px solid rgba(216, 220, 235, 1);
+  border-radius: 5px;
   font-family: $page-font-family;
   font-size: 14px;
   color: rgba(3, 9, 41, 1);
-  box-shadow: none;
+  background-color: rgba(255, 255, 255, 1);
   cursor: pointer;
-
-  &:focus-within {
-    border-color: rgba(62, 64, 219, 1);
-  }
 }
 
 :host ::ng-deep .panel-ng-select.ng-select .ng-select-container .ng-value-container {
   padding-left: 12px;
+  display: flex;
+  align-items: center;
 }
 
 :host ::ng-deep .panel-ng-select.ng-select .ng-select-container .ng-value-container .ng-value {
   font-family: $page-font-family;
   font-size: 14px;
   color: rgba(3, 9, 41, 1);
+  display: flex;
+  align-items: center;
 }
 
 :host ::ng-deep .panel-ng-select.ng-select.ng-select-focused .ng-select-container {
@@ -232,14 +247,15 @@ $page-font-family: "Circular-Std", sans-serif;
   font-family: $page-font-family;
   font-size: 14px;
   color: rgba(3, 9, 41, 1);
-  padding: 10px 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
 
   &.ng-option-marked {
     background: rgba(238, 240, 255, 1);
   }
 
   &.ng-option-selected {
-    color: rgba(62, 64, 219, 1);
     background: #fff;
     font-weight: 500;
   }

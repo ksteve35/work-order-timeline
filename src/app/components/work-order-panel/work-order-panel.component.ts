@@ -1,12 +1,29 @@
 import {
-  Component, EventEmitter, Input, OnChanges,
+  Component, EventEmitter, Injectable, Input, OnChanges,
   OnInit, Output, SimpleChanges
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms'
-import { NgbDatepickerModule, NgbDateStruct } from '@ng-bootstrap/ng-bootstrap'
+import { NgbDatepickerModule, NgbDateStruct, NgbDateParserFormatter } from '@ng-bootstrap/ng-bootstrap'
 import { NgSelectModule } from '@ng-select/ng-select'
 import { WorkCenterDocument, WorkOrderDocument, WorkOrderStatus } from '../../models/documents.model'
+
+// Formats dates as MM.DD.YYYY in the input display
+@Injectable()
+class CustomDateFormatter extends NgbDateParserFormatter {
+  parse(value: string): NgbDateStruct | null {
+    if (!value) return null
+    const parts = value.split('.')
+    if (parts.length !== 3) return null
+    return { month: +parts[0], day: +parts[1], year: +parts[2] }
+  }
+  format(date: NgbDateStruct | null): string {
+    if (!date) return ''
+    return `${String(date.month).padStart(2,'0')}.${String(date.day).padStart(2,'0')}.${date.year}`
+  }
+}
+
+
 
 export interface PanelWorkOrder {
   docId?:       string
@@ -21,8 +38,10 @@ export interface PanelWorkOrder {
   selector: 'app-work-order-panel',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, NgbDatepickerModule, NgSelectModule],
+  providers: [{ provide: NgbDateParserFormatter, useClass: CustomDateFormatter }],
   templateUrl: './work-order-panel.component.html',
-  styleUrls: ['./work-order-panel.component.scss']
+  styleUrls: ['./work-order-panel.component.scss'],
+
 })
 export class WorkOrderPanelComponent implements OnInit, OnChanges {
   @Input()  mode: 'create' | 'edit' = 'create'
@@ -65,8 +84,8 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges {
     this.form = new FormGroup({
       name:      new FormControl(this.initialData?.name   ?? '',      Validators.required),
       status:    new FormControl(this.initialData?.status ?? 'open',  Validators.required),
-      startDate: new FormControl(this.toNgbDate(startDate),           Validators.required),
-      endDate:   new FormControl(this.toNgbDate(endDate),             Validators.required)
+      startDate: new FormControl(this.toNgbDate(startDate),          Validators.required),
+      endDate:   new FormControl(this.toNgbDate(endDate),            Validators.required)
     })
   }
 
@@ -116,6 +135,16 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges {
 
   onCancel(): void {
     this.cancel.emit()
+  }
+
+  // ---------------------------------------------------------------------------
+  // Status badge helpers (mirrors work order bar colors)
+  // ---------------------------------------------------------------------------
+
+  getStatusBadgeStyle(status: string): { [k: string]: string } {
+    const bg:   Record<string,string> = { open: '#E4FDFF', 'in-progress': '#D6D8FF', complete: '#E1FFCC', blocked: '#FCEEB5' }
+    const text: Record<string,string> = { open: 'rgba(0,176,191,1)', 'in-progress': 'rgba(62,64,219,1)', complete: 'rgba(8,162,104,1)', blocked: 'rgba(177,54,0,1)' }
+    return { 'background-color': bg[status] ?? '#E4FDFF', 'color': text[status] ?? 'rgba(0,176,191,1)' }
   }
 
   // ---------------------------------------------------------------------------

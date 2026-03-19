@@ -45,25 +45,32 @@
         formControlName="status"
         [clearable]="false"
         [searchable]="false"
-      ></ng-select>
+      >
+        <!-- Selected value: badge style matching work order bars -->
+        <ng-template ng-label-tmp let-item="item">
+          <span class="status-badge" [ngStyle]="getStatusBadgeStyle(item.value)">{{ item.label }}</span>
+        </ng-template>
+        <!-- Dropdown options: plain text, selected gets badge -->
+        <ng-template ng-option-tmp let-item="item" let-selected$="selected$">
+          <span *ngIf="selected$; else plain" class="status-badge" [ngStyle]="getStatusBadgeStyle(item.value)">{{ item.label }}</span>
+          <ng-template #plain>{{ item.label }}</ng-template>
+        </ng-template>
+      </ng-select>
     </div>
 
     <!-- Start Date -->
     <div class="panel-field">
       <label class="panel-label">Start date</label>
-      <div class="panel-date-wrapper">
-        <input
-          class="panel-input"
-          placeholder="YYYY-MM-DD"
-          formControlName="startDate"
-          ngbDatepicker
-          #startPicker="ngbDatepicker"
-          (click)="startPicker.toggle()"
-          [displayMonths]="1"
-          [class.panel-input--error]="form.get('startDate')?.invalid && form.get('startDate')?.touched"
-          readonly
-        />
-      </div>
+      <input
+        class="panel-input"
+        placeholder="MM.DD.YYYY"
+        formControlName="startDate"
+        ngbDatepicker
+        #startPicker="ngbDatepicker"
+        (click)="startPicker.toggle()"
+        [class.panel-input--error]="form.get('startDate')?.invalid && form.get('startDate')?.touched"
+        readonly
+      />
       <span class="panel-error" *ngIf="form.get('startDate')?.invalid && form.get('startDate')?.touched">
         Start date is required
       </span>
@@ -72,19 +79,16 @@
     <!-- End Date -->
     <div class="panel-field">
       <label class="panel-label">End date</label>
-      <div class="panel-date-wrapper">
-        <input
-          class="panel-input"
-          placeholder="YYYY-MM-DD"
-          formControlName="endDate"
-          ngbDatepicker
-          #endPicker="ngbDatepicker"
-          (click)="endPicker.toggle()"
-          [displayMonths]="1"
-          [class.panel-input--error]="form.get('endDate')?.invalid && form.get('endDate')?.touched"
-          readonly
-        />
-      </div>
+      <input
+        class="panel-input"
+        placeholder="MM.DD.YYYY"
+        formControlName="endDate"
+        ngbDatepicker
+        #endPicker="ngbDatepicker"
+        (click)="endPicker.toggle()"
+        [class.panel-input--error]="form.get('endDate')?.invalid && form.get('endDate')?.touched"
+        readonly
+      />
       <span class="panel-error" *ngIf="form.get('endDate')?.invalid && form.get('endDate')?.touched">
         End date is required
       </span>
