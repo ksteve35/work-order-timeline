@@ -30,13 +30,32 @@ $page-font-family: "Circular-Std", sans-serif;
               0 4.5px 5px -1px rgba(216, 220, 235, 1);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  // overflow: visible so ng-select dropdown can escape the panel bounds
+  overflow: visible;
   animation: slideIn 200ms ease-out;
+
+  &--closing {
+    animation: slideOut 180ms ease-in forwards;
+  }
 }
 
 @keyframes slideIn {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+
+.panel-overlay--closing {
+  animation: fadeOut 180ms ease-in forwards;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 
 // --- Header ------------------------------------------------------------------
@@ -49,6 +68,9 @@ $page-font-family: "Circular-Std", sans-serif;
   justify-content: space-between;
   padding: 0 24px;
   border-bottom: 1px solid rgba(230, 235, 240, 1);
+  border-radius: 12px 0 0 0;
+  background-color: rgba(255, 255, 255, 1);
+  overflow: hidden;
 }
 
 .panel-header-text {
@@ -121,10 +143,12 @@ $page-font-family: "Circular-Std", sans-serif;
 .panel-body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: visible;
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  background-color: rgba(255, 255, 255, 1);
 }
 
 .panel-field {
@@ -238,44 +262,35 @@ $page-font-family: "Circular-Std", sans-serif;
 }
 
 :host ::ng-deep .panel-ng-select .ng-dropdown-panel {
+  background-color: #fff;
   border: 1px solid rgba(230, 235, 240, 1);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(200, 207, 233, 0.5);
+  box-shadow: 0 0 0 1px rgba(104, 113, 150, 0.1),
+              0 4px 12px rgba(200, 207, 233, 0.6);
+  z-index: 9999;
+  overflow: hidden;
 }
 
-:host ::ng-deep .panel-ng-select .ng-dropdown-panel .ng-option {
+:host ::ng-deep .panel-ng-select .ng-dropdown-panel .ng-dropdown-panel-items {
+  background-color: #fff;
+}
+
+:host ::ng-deep .panel-ng-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
   font-family: $page-font-family;
   font-size: 14px;
+  font-weight: 400;
   color: rgba(3, 9, 41, 1);
   padding: 8px 12px;
   display: flex;
   align-items: center;
+  background-color: #fff;
 
   &.ng-option-marked {
-    background: rgba(238, 240, 255, 1);
+    background-color: rgba(238, 240, 255, 1);
   }
 
   &.ng-option-selected {
-    background: #fff;
+    background-color: #fff;
     font-weight: 500;
-  }
-}
-
-// --- ngb-datepicker ----------------------------------------------------------
-
-:host ::ng-deep ngb-datepicker {
-  border: 1px solid rgba(230, 235, 240, 1);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(200, 207, 233, 0.5);
-  font-family: $page-font-family;
-}
-
-:host ::ng-deep .ngb-dp-day .btn-light {
-  font-family: $page-font-family;
-  font-size: 13px;
-  border-radius: 4px;
-
-  &.bg-primary {
-    background-color: rgba(62, 64, 219, 1) !important;
   }
 }

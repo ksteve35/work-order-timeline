@@ -133,8 +133,14 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges {
     })
   }
 
+  isClosing = false
+
   onCancel(): void {
-    this.cancel.emit()
+    this.isClosing = true
+    setTimeout(() => {
+      this.isClosing = false
+      this.cancel.emit()
+    }, 180)
   }
 
   // ---------------------------------------------------------------------------

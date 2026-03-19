@@ -1,8 +1,8 @@
 <!-- Overlay -->
-<div class="panel-overlay" (click)="onCancel()"></div>
+<div class="panel-overlay" [class.panel-overlay--closing]="isClosing" (click)="onCancel()"></div>
 
 <!-- Panel -->
-<div class="panel" (click)="$event.stopPropagation()">
+<div class="panel" [class.panel--closing]="isClosing" (click)="$event.stopPropagation()">
 
   <!-- Header -->
   <div class="panel-header">
@@ -45,6 +45,7 @@
         formControlName="status"
         [clearable]="false"
         [searchable]="false"
+
       >
         <!-- Selected value: badge style matching work order bars -->
         <ng-template ng-label-tmp let-item="item">
@@ -68,6 +69,7 @@
         ngbDatepicker
         #startPicker="ngbDatepicker"
         (click)="startPicker.toggle()"
+        datepickerClass="panel-datepicker"
         [class.panel-input--error]="form.get('startDate')?.invalid && form.get('startDate')?.touched"
         readonly
       />
@@ -86,6 +88,7 @@
         ngbDatepicker
         #endPicker="ngbDatepicker"
         (click)="endPicker.toggle()"
+        datepickerClass="panel-datepicker"
         [class.panel-input--error]="form.get('endDate')?.invalid && form.get('endDate')?.touched"
         readonly
       />
