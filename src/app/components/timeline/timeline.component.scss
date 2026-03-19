@@ -140,7 +140,6 @@ $work-center-left-offset: 31px;
 .timeline-row {
   height: $row-height;
   position: relative;
-  // No border-top / border-bottom — horizontal borders removed from data rows
 
   &:hover {
     background: rgba(238, 240, 255, 1);
