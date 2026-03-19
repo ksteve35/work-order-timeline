@@ -38,69 +38,153 @@ $page-font-family: "Circular-Std", sans-serif;
   display: flex;
   align-items: center;
   border-radius: 0 5px 5px 0;
-  padding: 0 8px 0 8px;
-  gap: 6.53px;
+  overflow: visible;
   cursor: pointer;
-  user-select: none;
 }
 
-.timescale-value {
+// Chevron rendered as ::after pseudo-element inside the ng-select container
+// so it sits within ng-select's hit area and clicks always register.
+:host ::ng-deep .timescale-ng-select.ng-select .ng-select-container::after {
+  content: '';
+  display: block;
+  width: 8.47px;
+  height: 5px;
+  flex-shrink: 0;
+  background-image: url('/images/Down@4x.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin-left: 6.53px;
+  pointer-events: none;
+}
+
+:host ::ng-deep .timescale-ng-select.ng-select.ng-select-opened .ng-select-container::after {
+  background-image: url('/images/DownPurple@4x.png');
+}
+
+// --- ng-select overrides -----------------------------------------------------
+// All ng-select internals are rendered outside Angular's component scope, so
+// every rule needs :host ::ng-deep to pierce view encapsulation.
+
+:host ::ng-deep .timescale-ng-select {
+  flex: 1;
+}
+
+:host ::ng-deep .timescale-ng-select.ng-select {
+  // Make ng-select fill the full .timescale-selector-right width
+  width: 100%;
+}
+
+:host ::ng-deep .timescale-ng-select.ng-select .ng-arrow-wrapper {
+  display: none;
+}
+
+:host ::ng-deep .timescale-ng-select.ng-select .ng-select-container {
+  border: none;
+  box-shadow: none;
+  outline: none;
+  background: transparent;
+  min-height: 25px;
+  height: 25px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding-right: 8px; // right padding moved here so it's within the clickable area
+}
+
+:host ::ng-deep .timescale-ng-select.ng-select .ng-select-container .ng-value-container {
+  padding: 0 !important;
+  padding-left: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  flex: 1 !important;
+  height: 25px !important;
+  align-self: stretch !important;
+}
+
+:host ::ng-deep .timescale-ng-select.ng-select .ng-select-container .ng-value-container .ng-value {
   font-family: $page-font-family;
   font-size: 13px;
   font-weight: 600;
   color: rgba(62, 64, 219, 1);
-  line-height: 25px;
   white-space: nowrap;
+  line-height: 25px !important;
 }
 
-.timescale-chevron {
-  width: 8.47px;
-  height: 5px;
-  flex-shrink: 0;
-  pointer-events: none;
-}
-
-.timescale-dropdown {
+:host ::ng-deep .timescale-ng-select.ng-select .ng-select-container .ng-value-container .ng-input {
+  width: 0;
+  height: 0;
+  padding: 0;
+  overflow: hidden;
   position: absolute;
-  top: calc(100% + 5px);
-  left: 0;
-  width: 200px;
-  height: 136px;
-  background-color: #fff;
-  border-radius: 5px;
+}
+
+:host ::ng-deep .timescale-ng-select.ng-select .ng-select-container .ng-value-container .ng-input input {
+  font-family: $page-font-family;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(62, 64, 219, 1);
+  padding: 0;
+  margin: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+:host ::ng-deep .timescale-ng-select.ng-select.ng-select-focused .ng-select-container,
+:host ::ng-deep .timescale-ng-select.ng-select.ng-select-opened .ng-select-container {
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+// --- Dropdown panel ----------------------------------------------------------
+
+:host ::ng-deep .ng-dropdown-panel {
+  z-index: 9999;
+  width: 200px !important;
+  border: none;
   box-shadow: 0 0 0 1px rgba(104, 113, 150, 0.1),
               0 2.5px 3px -1.5px rgba(200, 207, 233, 1),
               0 4.5px 5px -1px rgba(216, 220, 235, 1);
-  z-index: 9999;
-  padding: 12px 0;
+  border-radius: 5px;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  top: 30px !important;
+  left: 0 !important;
+  background-color: #fff;
 }
 
-.timescale-option {
+:host ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items {
+  background-color: #fff;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  height: 136px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+:host ::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(47, 48, 89, 1);
+  padding: 0 0 0 12px;
   height: 28px;
   min-height: 28px;
   max-height: 28px;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding-left: 12px;
-  font-family: $page-font-family;
-  font-weight: 500;
-  font-size: 13px;
-  line-height: 1;
-  color: rgba(47, 48, 89, 1);
-  cursor: pointer;
   box-sizing: border-box;
 
-  &:hover {
+  &:hover,
+  &.ng-option-marked {
     background: rgba(238, 240, 255, 1);
   }
 
-  &--selected {
+  &.ng-option-selected {
+    font-weight: 500;
     color: rgba(62, 64, 219, 1);
+    background: #fff;
   }
 }
 

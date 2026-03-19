@@ -1,17 +1,18 @@
 <div class="timescale-selector">
   <div class="timescale-selector-both">
     <div class="timescale-selector-left">Timescale</div>
-    <div class="timescale-selector-right" (click)="toggleDropdown()">
-      <span class="timescale-value">{{ selected }}</span>
-      <img src="/images/Down@4x.png" class="timescale-chevron" alt="" />
-      <div class="timescale-dropdown" *ngIf="dropdownOpen">
-        <div
-          class="timescale-option"
-          *ngFor="let opt of options"
-          [class.timescale-option--selected]="opt.value === selected"
-          (click)="selectOption(opt.value, $event)"
-        >{{ opt.label }}</div>
-      </div>
+    <div class="timescale-selector-right">
+      <ng-select
+        class="timescale-ng-select"
+        [items]="options"
+        bindLabel="label"
+        bindValue="value"
+        [ngModel]="selected"
+        (ngModelChange)="onSelect($event)"
+        [clearable]="false"
+        [searchable]="false"
+        appendTo=".timescale-selector-both"
+      ></ng-select>
     </div>
   </div>
 </div>
