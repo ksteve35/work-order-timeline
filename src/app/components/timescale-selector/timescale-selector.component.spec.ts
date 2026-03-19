@@ -8,37 +8,38 @@ describe('TimescaleSelectorComponent', () => {
     }).compileComponents()
   })
 
-  it('should toggle dropdown on toggleDropdown call', () => {
+  it('should have four timescale options', () => {
     const fixture = TestBed.createComponent(TimescaleSelectorComponent)
     const app = fixture.componentInstance
-    expect(app.dropdownOpen).toBeFalse()
-    app.toggleDropdown()
-    expect(app.dropdownOpen).toBeTrue()
-    app.toggleDropdown()
-    expect(app.dropdownOpen).toBeFalse()
+    expect(app.options.length).toBe(4)
+    expect(app.options.map(o => o.value)).toEqual(['Hour', 'Day', 'Week', 'Month'])
   })
 
-  it('should emit selected option on option click', () => {
+  it('should emit selected option on onSelect call', () => {
     const fixture = TestBed.createComponent(TimescaleSelectorComponent)
     const app = fixture.componentInstance
     spyOn(app.selectedChange, 'emit')
-    let mockEvent = new MouseEvent('click')
-    app.selectOption('Day', mockEvent)
+    app.onSelect('Day')
     expect(app.selectedChange.emit).toHaveBeenCalledWith('Day')
-    mockEvent = new MouseEvent('click')
-    app.selectOption('Hour', mockEvent)
+    app.onSelect('Hour')
     expect(app.selectedChange.emit).toHaveBeenCalledWith('Hour')
   })
 
-  it('should not emit selected option if already selected', () => {
+  it('should not emit if the same option is selected again', () => {
     const fixture = TestBed.createComponent(TimescaleSelectorComponent)
     const app = fixture.componentInstance
     spyOn(app.selectedChange, 'emit')
-    let mockEvent = new MouseEvent('click')
-    app.selectOption('Day', mockEvent)
+    app.onSelect('Day')
     expect(app.selectedChange.emit).toHaveBeenCalledWith('Day')
-    mockEvent = new MouseEvent('click')
-    app.selectOption('Day', mockEvent)
+    app.onSelect('Day')
     expect(app.selectedChange.emit).toHaveBeenCalledTimes(1)
+  })
+
+  it('should update selected value optimistically on onSelect', () => {
+    const fixture = TestBed.createComponent(TimescaleSelectorComponent)
+    const app = fixture.componentInstance
+    expect(app.selected).toBe('Month')
+    app.onSelect('Week')
+    expect(app.selected).toBe('Week')
   })
 })
