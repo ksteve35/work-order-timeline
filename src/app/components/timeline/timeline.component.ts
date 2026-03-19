@@ -544,6 +544,34 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   // ---------------------------------------------------------------------------
+  // Hover ghost — empty slot preview shown when hovering an unoccupied column
+  // ---------------------------------------------------------------------------
+
+  hoverGhost: { left: number; wcId: string } | null = null
+
+  onRowMousemove(event: MouseEvent, wcId: string): void {
+    const el         = this.rightColumn.nativeElement
+    // Use the right-column container's left edge as the reference point.
+    // The row stretches the full grid width but clientX needs to be measured
+    // from the scrollable container's visible left edge, then offset by scrollLeft.
+    const containerLeft = el.getBoundingClientRect().left
+    const colIdx = Math.floor((event.clientX - containerLeft + el.scrollLeft) / this.columnWidth)
+    const left   = colIdx * this.columnWidth + 1
+
+    const occupied = this.getOrdersForWorkCenter(wcId).some(o => {
+      const s = this.getColumnIndex(o.data.startDate)
+      const e = this.getColumnIndex(o.data.endDate)
+      return colIdx >= s && colIdx <= e
+    })
+
+    this.hoverGhost = occupied ? null : { left, wcId }
+  }
+
+  onRowMouseleave(): void {
+    this.hoverGhost = null
+  }
+
+  // ---------------------------------------------------------------------------
   // trackBy
   // ---------------------------------------------------------------------------
 

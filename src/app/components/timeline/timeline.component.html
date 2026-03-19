@@ -94,7 +94,15 @@
       <div
         class="timeline-row"
         *ngFor="let wc of workCenters; trackBy: trackByWcId"
+        (mousemove)="onRowMousemove($event, wc.docId)"
+        (mouseleave)="onRowMouseleave()"
       >
+        <!-- Hover ghost: empty slot preview shown over unoccupied columns -->
+        <div
+          class="timeline-row-ghost"
+          *ngIf="hoverGhost && hoverGhost.wcId === wc.docId"
+          [style.left.px]="hoverGhost.left"
+        ></div>
         <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId); trackBy: trackByOrderId">
           <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
             <span class="bar-label">{{ order.data.name }}</span>

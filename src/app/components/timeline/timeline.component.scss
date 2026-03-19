@@ -8,8 +8,6 @@ $row-height: 48px;
 $work-center-left-offset: 31px;
 
 // --- Host element ------------------------------------------------------------
-// app-timeline is a custom element. Without :host styles it defaults to
-// display:inline and ignores flex:1 from the parent flex container.
 
 :host {
   display: flex;
@@ -120,7 +118,6 @@ $work-center-left-offset: 31px;
   align-items: center;
   justify-content: center;
   height: 100%;
-  // No border-right — vertical borders removed from header cells
   color: rgba(104, 113, 150, 1);
   font-family: $page-font-family;
   font-size: 14px;
@@ -146,6 +143,25 @@ $work-center-left-offset: 31px;
   }
 }
 
+// --- Hover ghost (empty slot preview) ----------------------------------------
+
+.timeline-row-ghost {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 113px;
+  height: 38px;
+  border: 1px solid rgba(195, 199, 255, 1);
+  border-radius: 8px;
+  background-color: rgba(101, 112, 255, 0.1);
+  // pointer-events: none removed — the ghost is a child of the row so mouse
+  // events still bubble up to the row's mousemove handler, and the cursor
+  // can now correctly show as pointer over the ghost.
+  box-sizing: border-box;
+  z-index: 1;
+  cursor: pointer;
+}
+
 // --- Work order bars ----------------------------------------------------------
 
 .work-order-bar {
@@ -162,14 +178,12 @@ $work-center-left-offset: 31px;
   font-size: 12px;
   font-family: $page-font-family;
   white-space: nowrap;
-  // overflow: hidden removed — .bar-label handles its own text clipping,
-  // and the dropdown menu must not be clipped by the bar container.
   cursor: pointer;
   z-index: 1;
   box-sizing: border-box;
 
   &:hover {
-    z-index: 2; // raise above overlapping bars so button and menu are always accessible
+    z-index: 2;
   }
 }
 
@@ -273,8 +287,6 @@ $work-center-left-offset: 31px;
   bottom: 0;
   width: 0;
   pointer-events: none;
-  // No z-index on the container — label and line have their own z-index
-  // so they can straddle the work order bars independently.
 }
 
 .current-period-label {
@@ -292,7 +304,7 @@ $work-center-left-offset: 31px;
   display: flex;
   align-items: center;
   white-space: nowrap;
-  z-index: 2; // above work order bars (z-index: 1)
+  z-index: 2;
 }
 
 .current-period-line {
@@ -303,7 +315,7 @@ $work-center-left-offset: 31px;
   height: calc(100% - #{$header-height});
   border: 3px solid rgba(212, 215, 255, 1);
   background-color: $grid-current-time-color;
-  z-index: 0; // below work order bars (z-index: 1)
+  z-index: 0;
 }
 
 .timeline-grid--week .current-period-label,
