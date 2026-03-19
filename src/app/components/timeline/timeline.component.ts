@@ -83,8 +83,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   onDeleteOrder(orderId: string, event: MouseEvent): void {
     event.stopPropagation()
     this.openMenuOrderId = null
-    // TODO: wire up delete
-    console.log('Delete order', orderId)
+    this.workOrders = this.workOrders.filter(o => o.docId !== orderId)
   }
 
   constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
