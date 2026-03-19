@@ -12,20 +12,6 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
 ## Building
 
 To build the project run:
@@ -44,16 +30,38 @@ To execute unit tests with the [Karma](https://karma-runner.github.io) test runn
 ng test
 ```
 
-## Running end-to-end tests
+## Libraries Used
 
-For end-to-end (e2e) testing, run:
+- Angular v19.1.0
+  - Required framework for the assessment and needed to use Angular v17+
+- rxjs v7.8.0
+  - Needed to utilize `Subject` class to detect when an `ngOnDestroy` function finished firing
+- popperjs v2.11.8
+  - Required to make ng-bootstrap cooperate, as it is a peer dependency
+- karma v6.4.0
+  - Utilized to run unit tests with jasmine
+- ng-bootstrap v17.0.1
+  - Used to gain access to the `ngb-datepicker` element for date picking
+- ng-select v12.0.0
+  - Used for dropdown selection input fields in lieu of `<select>` elements
 
-```bash
-ng e2e
-```
+## Known Issues
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- User has ability to set a work order's start date after the end date
+  - Ghost timeline cell appears behind these work orders as a side effect. A pixel-perfect click can cause the create work order panel to open this way.
+- A work order's start and end dates are 12 AM on the date, making it impossible to create or edit work orders to a specific hour on a given date
+-  `work-order-panel` component
+  - Lacking downward arrow on Status `ng-select` input
+  - Adjust spacing and selected status color in Status `ng-select` dropdown menu
+  - `Cancel` and `Create` buttons
+    - Need to add a focused color for when navigating the form using tab or tab + shift
+    - `Cancel` button border looks strange when hovering or clicking on the button
+  - Ensure active input field color is accurate (`border: 2px solid rgba(170, 175, 255, 1); border-radius: 5px;`)
+- Smaller/mobile screens need adjustment
 
-## Additional Resources
+## Future Upgrades
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Add a 'Today' button to quickly snap the user to the current period line
+- Add localStorage persistence
+- Add ability to create a new work center
+- Add tooltip when hovering over work order to display name, status, and full date range
