@@ -1,0 +1,99 @@
+<!-- Overlay -->
+<div class="panel-overlay" (click)="onCancel()"></div>
+
+<!-- Panel -->
+<div class="panel" (click)="$event.stopPropagation()">
+
+  <!-- Header -->
+  <div class="panel-header">
+    <div class="panel-header-text">
+      <h2 class="panel-title">{{ title }}</h2>
+      <p class="panel-subtitle">{{ subtitle }}</p>
+    </div>
+    <div class="panel-header-actions">
+      <button class="panel-btn panel-btn--cancel" type="button" (click)="onCancel()">Cancel</button>
+      <button class="panel-btn panel-btn--submit" type="button" (click)="onSubmit()">{{ submitLabel }}</button>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="panel-body" [formGroup]="form">
+
+    <!-- Work Order Name -->
+    <div class="panel-field">
+      <label class="panel-label">Work Order Name</label>
+      <input
+        class="panel-input"
+        type="text"
+        formControlName="name"
+        placeholder="Enter work order name"
+        [class.panel-input--error]="form.get('name')?.invalid && form.get('name')?.touched"
+      />
+      <span class="panel-error" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">
+        Name is required
+      </span>
+    </div>
+
+    <!-- Status -->
+    <div class="panel-field">
+      <label class="panel-label">Status</label>
+      <ng-select
+        class="panel-ng-select"
+        [items]="statusOptions"
+        bindLabel="label"
+        bindValue="value"
+        formControlName="status"
+        [clearable]="false"
+        [searchable]="false"
+      ></ng-select>
+    </div>
+
+    <!-- Start Date -->
+    <div class="panel-field">
+      <label class="panel-label">Start date</label>
+      <div class="panel-date-wrapper">
+        <input
+          class="panel-input"
+          placeholder="YYYY-MM-DD"
+          formControlName="startDate"
+          ngbDatepicker
+          #startPicker="ngbDatepicker"
+          (click)="startPicker.toggle()"
+          [displayMonths]="1"
+          [class.panel-input--error]="form.get('startDate')?.invalid && form.get('startDate')?.touched"
+          readonly
+        />
+      </div>
+      <span class="panel-error" *ngIf="form.get('startDate')?.invalid && form.get('startDate')?.touched">
+        Start date is required
+      </span>
+    </div>
+
+    <!-- End Date -->
+    <div class="panel-field">
+      <label class="panel-label">End date</label>
+      <div class="panel-date-wrapper">
+        <input
+          class="panel-input"
+          placeholder="YYYY-MM-DD"
+          formControlName="endDate"
+          ngbDatepicker
+          #endPicker="ngbDatepicker"
+          (click)="endPicker.toggle()"
+          [displayMonths]="1"
+          [class.panel-input--error]="form.get('endDate')?.invalid && form.get('endDate')?.touched"
+          readonly
+        />
+      </div>
+      <span class="panel-error" *ngIf="form.get('endDate')?.invalid && form.get('endDate')?.touched">
+        End date is required
+      </span>
+    </div>
+
+    <!-- Overlap error -->
+    <div class="panel-overlap-error" *ngIf="overlapError">
+      This order overlaps with an existing order on the same work center.
+    </div>
+
+  </div>
+</div>

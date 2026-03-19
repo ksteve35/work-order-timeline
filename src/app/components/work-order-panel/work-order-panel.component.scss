@@ -1,0 +1,265 @@
+$page-font-family: "Circular-Std", sans-serif;
+
+// --- Overlay ------------------------------------------------------------------
+
+:host {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1000;
+  pointer-events: all;
+}
+
+.panel-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(247, 249, 252, 0.5);
+}
+
+// --- Panel -------------------------------------------------------------------
+
+.panel {
+  position: relative;
+  width: 591px;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 1);
+  border-radius: 12px 0 0 12px;
+  box-shadow: 0 5px 15px 0 rgba(216, 220, 235, 1),
+              0 2.5px 3px -1.5px rgba(200, 207, 233, 1),
+              0 4.5px 5px -1px rgba(216, 220, 235, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideIn 200ms ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+// --- Header ------------------------------------------------------------------
+
+.panel-header {
+  height: 82px;
+  min-height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid rgba(230, 235, 240, 1);
+}
+
+.panel-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.panel-title {
+  font-family: $page-font-family;
+  font-size: 20px;
+  font-weight: 600;
+  color: rgba(47, 48, 89, 1);
+  margin: 0;
+  height: 25px;
+}
+
+.panel-subtitle {
+  font-family: $page-font-family;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(104, 113, 150, 1);
+  margin: 0;
+  height: 20px;
+}
+
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-btn {
+  width: 66px;
+  height: 32px;
+  border-radius: 6px;
+  font-family: $page-font-family;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+
+  &--cancel {
+    color: rgba(47, 48, 89, 1);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 1) , 0 1px 3px 0 rgba(200, 207, 233, 1);
+    border: 1px solid rgba(255, 255, 255, 1);
+    border-radius: 7px;
+    background-color: rgba(255, 255, 255, 1);
+
+    &:hover {
+      background-color: rgb(246, 247, 251);
+    }
+  }
+
+  &--submit {
+    color: #fff;
+    box-shadow: 0 0 0 1px rgba(86, 89, 255, 1) , 0 1px 3px 0 rgba(200, 207, 233, 1);
+    border: none;
+    border-radius: 7px;
+    background-color: rgba(86, 89, 255, 1);
+
+    &:hover {
+      background-color: rgb(63, 66, 211);
+    }
+  }
+}
+
+// --- Body / Fields -----------------------------------------------------------
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.panel-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.panel-label {
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(104, 113, 150, 1);
+}
+
+.panel-input {
+  height: 38px;
+  width: 100%;
+  padding: 0 8.64px 0 19.66px;
+  box-shadow: 0 0 0 1px rgba(216, 220, 235, 1) , 0 1.5px 3px -1.5px rgba(200, 207, 233, 1) , 0 1px 0.5px -1px rgba(216, 220, 235, 1);
+  border: 1px solid rgba(216, 220, 235, 1);
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 1);
+  font-family: $page-font-family;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(3, 9, 41, 1);
+  outline: none;
+  box-sizing: border-box;
+  cursor: pointer;
+
+  &:focus {
+    border-color: rgba(62, 64, 219, 1);
+  }
+
+  &--error {
+    border-color: rgba(220, 53, 69, 1);
+  }
+
+  &::placeholder {
+    color: rgba(164, 170, 192, 1);
+  }
+}
+
+.panel-date-wrapper {
+  position: relative;
+}
+
+.panel-error {
+  font-family: $page-font-family;
+  font-size: 12px;
+  color: rgba(220, 53, 69, 1);
+}
+
+.panel-overlap-error {
+  font-family: $page-font-family;
+  font-size: 13px;
+  color: rgba(177, 54, 0, 1);
+  background-color: rgba(255, 245, 207, 1);
+  border: 1px solid rgba(255, 197, 101, 1);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+// --- ng-select inside panel --------------------------------------------------
+
+:host ::ng-deep .panel-ng-select.ng-select .ng-select-container {
+  height: 40px;
+  min-height: 40px;
+  border: 1px solid rgba(230, 235, 240, 1);
+  border-radius: 6px;
+  font-family: $page-font-family;
+  font-size: 14px;
+  color: rgba(3, 9, 41, 1);
+  box-shadow: none;
+  cursor: pointer;
+
+  &:focus-within {
+    border-color: rgba(62, 64, 219, 1);
+  }
+}
+
+:host ::ng-deep .panel-ng-select.ng-select .ng-select-container .ng-value-container {
+  padding-left: 12px;
+}
+
+:host ::ng-deep .panel-ng-select.ng-select .ng-select-container .ng-value-container .ng-value {
+  font-family: $page-font-family;
+  font-size: 14px;
+  color: rgba(3, 9, 41, 1);
+}
+
+:host ::ng-deep .panel-ng-select.ng-select.ng-select-focused .ng-select-container {
+  border-color: rgba(62, 64, 219, 1);
+  box-shadow: none;
+}
+
+:host ::ng-deep .panel-ng-select .ng-dropdown-panel {
+  border: 1px solid rgba(230, 235, 240, 1);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(200, 207, 233, 0.5);
+}
+
+:host ::ng-deep .panel-ng-select .ng-dropdown-panel .ng-option {
+  font-family: $page-font-family;
+  font-size: 14px;
+  color: rgba(3, 9, 41, 1);
+  padding: 10px 12px;
+
+  &.ng-option-marked {
+    background: rgba(238, 240, 255, 1);
+  }
+
+  &.ng-option-selected {
+    color: rgba(62, 64, 219, 1);
+    background: #fff;
+    font-weight: 500;
+  }
+}
+
+// --- ngb-datepicker ----------------------------------------------------------
+
+:host ::ng-deep ngb-datepicker {
+  border: 1px solid rgba(230, 235, 240, 1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(200, 207, 233, 0.5);
+  font-family: $page-font-family;
+}
+
+:host ::ng-deep .ngb-dp-day .btn-light {
+  font-family: $page-font-family;
+  font-size: 13px;
+  border-radius: 4px;
+
+  &.bg-primary {
+    background-color: rgba(62, 64, 219, 1) !important;
+  }
+}

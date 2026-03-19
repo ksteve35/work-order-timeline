@@ -5,6 +5,7 @@ import {
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { WorkCenterDocument, WorkOrderDocument } from '../../models/documents.model'
+import { WorkOrderPanelComponent, PanelWorkOrder } from '../work-order-panel/work-order-panel.component'
 
 type Timescale = 'Hour' | 'Day' | 'Week' | 'Month'
 
@@ -22,7 +23,7 @@ const WINDOW_CONFIG: Record<Timescale, WindowConfig> = {
 
 @Component({
   selector: 'app-timeline',
-  imports: [CommonModule],
+  imports: [CommonModule, WorkOrderPanelComponent],
   templateUrl: './timeline.component.html',
   styleUrls: ['./timeline.component.scss']
 })
@@ -515,6 +516,10 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // Data helpers
   // ---------------------------------------------------------------------------
 
+  getOrderById(docId: string): WorkOrderDocument {
+    return this.workOrders.find(o => o.docId === docId)!
+  }
+
   getOrdersForWorkCenter(wcId: string): WorkOrderDocument[] {
     return this.workOrders.filter(o => o.data.workCenterId === wcId)
   }
@@ -572,6 +577,68 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   }
 
   // ---------------------------------------------------------------------------
+  // Work order panel (create / edit)
+  // ---------------------------------------------------------------------------
+
+  panelMode:    'create' | 'edit' | null = null
+  panelInitial: Partial<PanelWorkOrder> | undefined
+
+  openCreatePanel(wcId: string, colIdx: number): void {
+    const startDate = this.getDateAtPixel(colIdx * this.columnWidth)
+    const d = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate())
+    const endDate   = new Date(d); endDate.setDate(endDate.getDate() + 7)
+    const fmt = (dt: Date) =>
+      `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`
+
+    this.panelInitial = { workCenterId: wcId, startDate: fmt(d), endDate: fmt(endDate) }
+    this.panelMode    = 'create'
+    this.hoverGhost   = null
+  }
+
+  openEditPanel(order: WorkOrderDocument): void {
+    this.panelInitial = {
+      docId:        order.docId,
+      workCenterId: order.data.workCenterId,
+      name:         order.data.name,
+      status:       order.data.status,
+      startDate:    order.data.startDate,
+      endDate:      order.data.endDate
+    }
+    this.panelMode    = 'edit'
+    this.openMenuOrderId = null
+  }
+
+  onPanelSave(data: PanelWorkOrder): void {
+    if (this.panelMode === 'create') {
+      const newOrder: WorkOrderDocument = {
+        docId:    `wo-${Date.now()}`,
+        docType:  'workOrder',
+        data: {
+          name:         data.name,
+          workCenterId: data.workCenterId,
+          status:       data.status,
+          startDate:    data.startDate,
+          endDate:      data.endDate
+        }
+      }
+      this.workOrders = [...this.workOrders, newOrder]
+    } else if (this.panelMode === 'edit' && data.docId) {
+      this.workOrders = this.workOrders.map(o =>
+        o.docId === data.docId
+          ? { ...o, data: { ...o.data, name: data.name, status: data.status, startDate: data.startDate, endDate: data.endDate } }
+          : o
+      )
+    }
+    this.panelMode = null
+  }
+
+  onPanelCancel(): void {
+    this.panelMode = null
+  }
+
+
+
+  // ---------------------------------------------------------------------------
   // trackBy
   // ---------------------------------------------------------------------------
 
@@ -606,7 +673,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     }
   }
 
-  private getDateAtPixel(px: number): Date {
+  getDateAtPixel(px: number): Date {
     switch (this._activeTimescale) {
       case 'Hour': {
         const r = new Date(this.visibleStart)
