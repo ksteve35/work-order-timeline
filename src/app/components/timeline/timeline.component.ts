@@ -709,6 +709,12 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     }
   }
 
+  // Scrolls the timeline so the current period indicator is centered in view.
+  // Called by the "Today" button in AppComponent via a template reference (#timeline).
+  scrollToToday(): void {
+    this.scrollToDate(new Date(), 'left')
+  }
+
   private scrollToDate(date: Date, align: 'left' | 'center'): void {
     const el  = this.rightColumn.nativeElement
     const str = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`

@@ -5,12 +5,16 @@
   <div class="timeline-container">
     <div class="timeline-header">
       <div class="page-title">Work Orders</div>
-      <app-timescale-selector
-        [selected]="selectedTimescale"
-        (selectedChange)="onTimescaleSelected($event)"
-      />
+      <div class="timeline-header-controls">
+        <app-timescale-selector
+          [selected]="selectedTimescale"
+          (selectedChange)="onTimescaleSelected($event)"
+        />
+        <button class="today-btn" type="button" (click)="timeline.scrollToToday()">Today</button>
+      </div>
     </div>
     <app-timeline
+      #timeline
       [selectedTimescale]="selectedTimescale"
       [workCenters]="workCenters"
       [workOrders]="workOrders"

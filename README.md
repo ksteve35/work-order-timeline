@@ -43,13 +43,7 @@ ng test
 - ng-select v12.0.0
   - Used for dropdown selection input fields in lieu of `<select>` elements
 
-## Known Issues
-
-- Smaller/mobile screens need adjustment
-
 ## Future Upgrades
 
-- Add a 'Today' button to quickly snap the user to the current period line
-- Add localStorage persistence
 - Add ability to create a new work center
 - Add tooltip when hovering over work order to display name, status, and full date range

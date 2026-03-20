@@ -52,6 +52,37 @@ html, body {
   @media (max-width: 480px) { padding-top: 16px; }
 }
 
+.timeline-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.today-btn {
+  height: 25px;
+  padding: 0 10px;
+  border-radius: 5px;
+  background-color: #fff;
+  border: 1px solid rgba(230, 235, 240, 1);
+  box-shadow: 1px 2.5px 3px -1.5px rgba(200, 207, 233, 1);
+  font-family: $page-font-family;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(47, 48, 89, 1);
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: rgba(238, 240, 255, 1);
+    color: rgba(62, 64, 219, 1);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border: 2px solid rgba(170, 175, 255, 1);
+  }
+}
+
 .page-title {
   font-size: 24px;
   font-weight: 600;
