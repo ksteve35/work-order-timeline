@@ -181,7 +181,7 @@ $page-font-family: "Circular-Std", sans-serif;
   cursor: pointer;
 
   &:focus {
-    border-color: rgba(62, 64, 219, 1);
+    border-color: rgba(170, 175, 255, 1);
   }
 
   &--error {
@@ -257,7 +257,7 @@ $page-font-family: "Circular-Std", sans-serif;
 }
 
 :host ::ng-deep .panel-ng-select.ng-select.ng-select-focused .ng-select-container {
-  border-color: rgba(62, 64, 219, 1);
+  border-color: rgba(170, 175, 255, 1);
   box-shadow: none;
 }
 
