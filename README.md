@@ -45,8 +45,6 @@ ng test
 
 ## Known Issues
 
-- User has ability to set a work order's start date after the end date
-  - Ghost timeline cell appears behind these work orders as a side effect. A pixel-perfect click can cause the create work order panel to open this way.
 - A work order's start and end dates are 12 AM on the date, making it impossible to create or edit work orders to a specific hour on a given date
 -  `work-order-panel` component
   - Lacking downward arrow on Status `ng-select` input
