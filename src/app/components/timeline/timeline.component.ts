@@ -960,7 +960,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   onPanelSave(data: PanelWorkOrder): void {
     if (this.panelMode === 'create') {
       const newOrder: WorkOrderDocument = {
-        docId:   `wo-${Date.now()}`,
+        docId:   crypto.randomUUID(),
         docType: 'workOrder',
         data: {
           name:         data.name,
