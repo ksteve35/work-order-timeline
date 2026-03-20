@@ -2,6 +2,16 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.4.
 
+## Installation
+
+To install the project, navigate to its folder in a terminal and run:
+
+```bash
+npm install
+```
+
+Once all of the packages are installed, you can continue to run a development server, run unit tests, or build the project.
+
 ## Development server
 
 To start a local development server, run:
