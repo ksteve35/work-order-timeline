@@ -105,21 +105,12 @@
           [style.left.px]="hoverGhost.left"
           (click)="openCreatePanel(wc.docId, hoverGhost.left / columnWidth)"
         ></div>
-        <ng-container *ngFor="let order of getOrdersForWorkCenter(wc.docId); trackBy: trackByOrderId">
-          <div class="work-order-bar" [ngStyle]="getBarStyleObject(order)">
-            <span class="bar-label">{{ order.data.name }}</span>
-            <span class="bar-status" [ngStyle]="getStatusBadgeStyle(order.data.status)">
-              {{ getStatusLabel(order.data.status) }}
-            </span>
-            <button class="bar-menu-btn" type="button" (click)="toggleOrderMenu(order.docId, $event)">
-              <svg width="14" height="4" viewBox="0 0 14 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="2"  cy="2" r="1.5" fill="rgba(104, 113, 150, 1)"/>
-                <circle cx="7"  cy="2" r="1.5" fill="rgba(104, 113, 150, 1)"/>
-                <circle cx="12" cy="2" r="1.5" fill="rgba(104, 113, 150, 1)"/>
-              </svg>
-            </button>
-          </div>
-        </ng-container>
+        <app-work-order-bar
+          *ngFor="let order of getOrdersForWorkCenter(wc.docId); trackBy: trackByOrderId"
+          [order]="order"
+          [barStyle]="getBarStyleObject(order)"
+          (menuButtonClicked)="toggleOrderMenu(order.docId, $event)"
+        />
       </div>
 
       <!-- Order context menu — rendered at grid level to escape bar stacking context -->
@@ -149,7 +140,7 @@
 <app-work-order-panel
   *ngIf="panelMode !== null"
   [mode]="panelMode!"
-  [initialData]="panelInitial"
+  [initialData]="panelInitialData"
   [workCenters]="workCenters"
   [existingOrders]="workOrders"
   (save)="onPanelSave($event)"

@@ -200,76 +200,9 @@ $work-center-left-offset: 31px;
   cursor: pointer;
 }
 
-// --- Work order bars ----------------------------------------------------------
-
-.work-order-bar {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 38px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px;
-  color: rgba(3, 9, 41, 1);
-  font-size: 12px;
-  font-family: $page-font-family;
-  white-space: nowrap;
-  cursor: pointer;
-  z-index: 1;
-  box-sizing: border-box;
-
-  &:hover {
-    z-index: 2;
-  }
-}
-
-.bar-label {
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex: 1;
-  padding-right: 120px;
-}
-
-.bar-status {
-  position: absolute;
-  right: 36px;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  height: 22px;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 0 6px;
-  border-radius: 5px;
-  white-space: nowrap;
-}
-
-.bar-menu-btn {
-  position: absolute;
-  right: 6px;
-  flex-shrink: 0;
-  width: 24px;
-  height: 22px;
-  border-radius: 5px;
-  background-color: rgba(241, 243, 248, 1);
-  border: none;
-  cursor: pointer;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-
-  &:hover {
-    background-color: rgba(225, 228, 240, 1);
-  }
-}
-
-.work-order-bar:hover .bar-menu-btn {
-  display: flex;
-}
+// --- Order context menu -------------------------------------------------------
+// Rendered at .timeline-grid level (not inside WorkOrderBarComponent) so it
+// escapes the bar's stacking context and is never clipped.
 
 .bar-order-menu {
   position: absolute;

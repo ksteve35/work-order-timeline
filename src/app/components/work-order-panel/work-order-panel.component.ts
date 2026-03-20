@@ -1,6 +1,6 @@
 import {
-  ChangeDetectorRef, Component, ElementRef, EventEmitter, Injectable, Input, OnChanges,
-  OnInit, OnDestroy, Output, SimpleChanges, ViewChild
+  ChangeDetectorRef, Component, EventEmitter, Injectable, Input, OnChanges,
+  OnInit, Output, SimpleChanges, ViewChild
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms'
@@ -53,9 +53,9 @@ export interface PanelWorkOrder {
   styleUrls: ['./work-order-panel.component.scss'],
 
 })
-export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
+export class WorkOrderPanelComponent implements OnInit, OnChanges {
 
-  constructor(public cdr: ChangeDetectorRef, private el: ElementRef) {}
+  constructor(public cdr: ChangeDetectorRef) {}
   @Input()  mode: 'create' | 'edit' = 'create'
   @Input()  initialData?: Partial<PanelWorkOrder>
   @Input()  workCenters: WorkCenterDocument[] = []
@@ -129,8 +129,6 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
   @ViewChild('endPicker')   endPicker!:   NgbInputDatepicker
 
   activePicker: string | null = null
-
-  ngOnDestroy(): void {}
 
   togglePicker(name: string, picker: NgbInputDatepicker): void {
     picker.toggle()
