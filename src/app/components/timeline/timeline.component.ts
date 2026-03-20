@@ -722,7 +722,29 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // Scrolls the timeline so the current period indicator is centered in view.
   // Called by the "Today" button in AppComponent via a template reference (#timeline).
   scrollToToday(): void {
-    this.scrollToDate(new Date(), 'left')
+    const today = new Date()
+
+    // Check if today falls within the currently loaded range. If not —
+    // which happens after scrolling far away and switching timescales —
+    // reinitialize the range around today first so getColumnIndex returns
+    // a valid positive offset before we attempt to scroll.
+    const todayInRange = today >= this.visibleStart && today <= this.visibleEnd
+
+    if (!todayInRange) {
+      // Use the same fade cycle as a timescale switch so the content swap
+      // is smooth and isLoadingMore gates the scroll listener correctly.
+      this.isReady = false
+      this.isLoadingMore = true
+      setTimeout(() => {
+        this.initializeRange(today)
+        this.cdr.detectChanges()
+        this.scrollToDate(today, 'left')
+        this.checkScrollEdges()
+        this.isReady = true
+      }, 80)
+    } else {
+      this.scrollToDate(today, 'left')
+    }
   }
 
   private scrollToDate(date: Date, align: 'left' | 'center'): void {
