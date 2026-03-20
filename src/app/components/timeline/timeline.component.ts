@@ -499,6 +499,16 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     }
   }
 
+  // @upgrade Long work order bar performance: bars are currently rendered at
+  // their full pixel width regardless of how much is actually visible in the
+  // viewport. A work order spanning 2 years in Day view renders a bar ~82,000px
+  // wide, causing significant layout and paint cost. The fix is to clip each
+  // bar's left/width to the visible scroll range before rendering — compute
+  // the intersection of [barStart, barEnd] with [scrollLeft, scrollLeft + clientWidth],
+  // and only render bars that intersect the viewport. Virtual scrolling (e.g.
+  // Angular CDK ScrollingModule) could also be applied to the row axis if the
+  // number of work centers grows large. This optimisation should be prioritised
+  // if users regularly create orders spanning more than ~6 months in Day view.
   getBarStyleObject(order: WorkOrderDocument): { [k: string]: string } {
     const s = this.getColumnIndex(order.data.startDate)
     const e = this.getColumnIndex(order.data.endDate) + 1
