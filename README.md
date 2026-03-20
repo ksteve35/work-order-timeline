@@ -46,7 +46,7 @@ ng test
 ## Known Issues
 
 - A work order's start and end dates are 12 AM on the date, making it impossible to create or edit work orders to a specific hour on a given date
--  `work-order-panel` component
+- `work-order-panel` component
   - `Cancel` and `Create` buttons
     - Need to add a focused color for when navigating the form using tab or tab + shift
     - `Cancel` button border looks strange when hovering or clicking on the button
