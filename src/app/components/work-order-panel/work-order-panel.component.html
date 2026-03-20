@@ -45,7 +45,7 @@
         formControlName="status"
         [clearable]="false"
         [searchable]="false"
-
+        (open)="closeAllPickers()"
       >
         <!-- Selected value: badge style matching work order bars -->
         <ng-template ng-label-tmp let-item="item">
@@ -68,9 +68,10 @@
         formControlName="startDate"
         ngbDatepicker
         #startPicker="ngbDatepicker"
-        (click)="startPicker.toggle()"
+        (click)="togglePicker('start', startPicker)"
         (dateSelect)="checkOverlap()"
         datepickerClass="panel-datepicker"
+        [class.panel-input--open]="activePicker === 'start'"
         [class.panel-input--error]="form.get('startDate')?.invalid && form.get('startDate')?.touched"
         readonly
       />
@@ -88,9 +89,10 @@
         formControlName="endDate"
         ngbDatepicker
         #endPicker="ngbDatepicker"
-        (click)="endPicker.toggle()"
+        (click)="togglePicker('end', endPicker)"
         (dateSelect)="checkOverlap()"
         datepickerClass="panel-datepicker"
+        [class.panel-input--open]="activePicker === 'end'"
         [class.panel-input--error]="form.get('endDate')?.invalid && form.get('endDate')?.touched"
         readonly
       />

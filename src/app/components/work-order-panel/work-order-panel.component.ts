@@ -1,10 +1,10 @@
 import {
-  ChangeDetectorRef, Component, EventEmitter, Injectable, Input, OnChanges,
-  OnInit, Output, SimpleChanges
+  ChangeDetectorRef, Component, ElementRef, EventEmitter, Injectable, Input, OnChanges,
+  OnInit, OnDestroy, Output, SimpleChanges, ViewChild
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms'
-import { NgbDatepickerModule, NgbDateStruct, NgbDateParserFormatter } from '@ng-bootstrap/ng-bootstrap'
+import { NgbDatepickerModule, NgbDateStruct, NgbDateParserFormatter, NgbInputDatepicker } from '@ng-bootstrap/ng-bootstrap'
 import { NgSelectModule } from '@ng-select/ng-select'
 import { WorkCenterDocument, WorkOrderDocument, WorkOrderStatus } from '../../models/documents.model'
 
@@ -53,9 +53,9 @@ export interface PanelWorkOrder {
   styleUrls: ['./work-order-panel.component.scss'],
 
 })
-export class WorkOrderPanelComponent implements OnInit, OnChanges {
+export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(public cdr: ChangeDetectorRef, private el: ElementRef) {}
   @Input()  mode: 'create' | 'edit' = 'create'
   @Input()  initialData?: Partial<PanelWorkOrder>
   @Input()  workCenters: WorkCenterDocument[] = []
@@ -110,6 +110,26 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges {
       startDate: this.initialData.startDate ? this.toNgbDate(this.initialData.startDate) : null,
       endDate:   this.initialData.endDate   ? this.toNgbDate(this.initialData.endDate)   : null
     })
+  }
+
+  // Which datepicker is currently open: null | "start" | "end"
+  @ViewChild('startPicker') startPicker!: NgbInputDatepicker
+  @ViewChild('endPicker')   endPicker!:   NgbInputDatepicker
+
+  activePicker: string | null = null
+
+  ngOnDestroy(): void {}
+
+  togglePicker(name: string, picker: NgbInputDatepicker): void {
+    picker.toggle()
+    this.activePicker = picker.isOpen() ? name : null
+    this.cdr.detectChanges()
+  }
+
+  closeAllPickers(): void {
+    if (this.startPicker?.isOpen()) this.startPicker.close()
+    if (this.endPicker?.isOpen())   this.endPicker.close()
+    this.activePicker = null
   }
 
   checkOverlap(): void {
