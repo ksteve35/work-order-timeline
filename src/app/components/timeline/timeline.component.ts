@@ -1,7 +1,7 @@
 import {
-  AfterViewInit, ChangeDetectorRef, Component,
+  AfterViewInit, ChangeDetectorRef, Component, EventEmitter,
   ElementRef, Input, NgZone, OnChanges, OnInit,
-  SimpleChanges, ViewChild
+  Output, SimpleChanges, ViewChild
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { WorkCenterDocument, WorkOrderDocument } from '../../models/documents.model'
@@ -33,6 +33,10 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   @Input() selectedTimescale: Timescale = 'Month'
   @Input() workCenters: WorkCenterDocument[] = []
   @Input() workOrders:  WorkOrderDocument[]  = []
+
+  // Emitted whenever workOrders mutates (create, edit, delete).
+  // The parent (AppComponent) listens to persist the new array to localStorage.
+  @Output() workOrdersChanged = new EventEmitter<WorkOrderDocument[]>()
 
   // Internal active timescale used by all rendering/scroll methods.
   // Kept one step behind selectedTimescale so ngOnChanges can read the
@@ -85,6 +89,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     event.stopPropagation()
     this.openMenuOrderId = null
     this.workOrders = this.workOrders.filter(o => o.docId !== orderId)
+    this.emitWorkOrdersChanged()
   }
 
   constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone) {}
@@ -525,6 +530,10 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // Data helpers
   // ---------------------------------------------------------------------------
 
+  private emitWorkOrdersChanged(): void {
+    this.workOrdersChanged.emit(this.workOrders)
+  }
+
   getOrderById(docId: string): WorkOrderDocument {
     return this.workOrders.find(o => o.docId === docId)!
   }
@@ -639,6 +648,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
       )
     }
     this.panelMode = null
+    this.emitWorkOrdersChanged()
   }
 
   onPanelCancel(): void {
