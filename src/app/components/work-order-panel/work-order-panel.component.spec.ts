@@ -58,4 +58,20 @@ describe('WorkOrderPanelComponent', () => {
     app.cancel.emit()
     expect(app.cancel.emit).toHaveBeenCalled()
   })
+
+  it('should set endBeforeStart form error when end date is before start date', () => {
+    const fixture = TestBed.createComponent(WorkOrderPanelComponent)
+    const app = fixture.componentInstance
+    app.mode = 'create'
+    app.initialData = { workCenterId: 'wc1', startDate: '2026-05-01', endDate: '2026-06-01' }
+    fixture.detectChanges()
+
+    // Patch end date to be before start date
+    app.form.patchValue({
+      startDate: { year: 2026, month: 6, day: 1 },
+      endDate:   { year: 2026, month: 5, day: 1 }
+    })
+
+    expect(app.form.hasError('endBeforeStart')).toBeTrue()
+  })
 })
