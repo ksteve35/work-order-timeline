@@ -261,6 +261,22 @@ $page-font-family: "Circular-Std", sans-serif;
   box-shadow: none;
 }
 
+:host ::ng-deep .panel-ng-select.ng-select .ng-arrow-wrapper {
+  position: absolute;
+  top: calc(50% - 2.5px);
+  right: 14px;
+  transform: translateY(-50%);
+  width: auto;
+}
+
+// Arrow stays as downward triangle in both open and closed states
+:host ::ng-deep .panel-ng-select.ng-select .ng-arrow-wrapper .ng-arrow,
+:host ::ng-deep .panel-ng-select.ng-select.ng-select-opened .ng-arrow-wrapper .ng-arrow {
+  border-color: rgba(104, 113, 150, 1) transparent transparent;
+  border-style: solid;
+  border-width: 5px 4px 0;
+}
+
 :host ::ng-deep .panel-ng-select .ng-dropdown-panel {
   background-color: #fff;
   border: 1px solid rgba(230, 235, 240, 1);
@@ -292,5 +308,24 @@ $page-font-family: "Circular-Std", sans-serif;
   &.ng-option-selected {
     background-color: #fff;
     font-weight: 500;
+  }
+}
+
+// --- ngb-datepicker ----------------------------------------------------------
+
+:host ::ng-deep ngb-datepicker {
+  border: 1px solid rgba(230, 235, 240, 1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(200, 207, 233, 0.5);
+  font-family: $page-font-family;
+}
+
+:host ::ng-deep .ngb-dp-day .btn-light {
+  font-family: $page-font-family;
+  font-size: 13px;
+  border-radius: 4px;
+
+  &.bg-primary {
+    background-color: rgba(62, 64, 219, 1) !important;
   }
 }
