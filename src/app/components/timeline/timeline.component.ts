@@ -471,6 +471,15 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // Bar positioning
   // ---------------------------------------------------------------------------
 
+  // @upgrade Hour-level scheduling: startDate and endDate are currently stored
+  // as YYYY-MM-DD strings and always resolved to midnight (00:00). To support
+  // specific start/end hours, change the data model to store ISO-8601 datetime
+  // strings (e.g. '2026-04-01T08:00:00'), update getColumnIndex to parse the
+  // hour component and add it as a fractional column offset in Hour view, update
+  // getBarStyleObject to compute sub-column pixel offsets for Hour view, and
+  // update the work-order-panel form to include time pickers alongside the date
+  // pickers. The CustomDateFormatter and overlap validation would also need to
+  // account for time when comparing ranges.
   getColumnIndex(dateStr: string): number {
     const [y, mo, d] = dateStr.split('-').map(Number)
     const date = new Date(y, mo - 1, d)

@@ -198,6 +198,14 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
   // Date utilities
   // ---------------------------------------------------------------------------
 
+  // @upgrade Hour-level scheduling: these helpers currently strip time entirely,
+  // always resolving dates to midnight. To support hour-specific scheduling,
+  // replace NgbDatepicker with a combined date+time input (e.g. NgbDatepicker +
+  // a separate hour/minute select or NgbTimepicker), store values as ISO-8601
+  // datetime strings ('YYYY-MM-DDTHH:mm'), and update toNgbDate/fromNgbDate to
+  // preserve and serialize the time component. The endAfterStart validator and
+  // checkOverlap would also need to compare full datetime strings rather than
+  // date-only strings.
   private toNgbDate(dateStr: string): NgbDateStruct {
     const [y, m, d] = dateStr.split('-').map(Number)
     return { year: y, month: m, day: d }
