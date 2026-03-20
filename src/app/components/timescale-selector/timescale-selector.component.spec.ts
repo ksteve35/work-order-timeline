@@ -42,4 +42,40 @@ describe('TimescaleSelectorComponent', () => {
     app.onSelect('Week')
     expect(app.selected).toBe('Week')
   })
+
+  // -------------------------------------------------------------------------
+  // Additional tests
+  // -------------------------------------------------------------------------
+
+  it('should default selected to Month', () => {
+    const fixture = TestBed.createComponent(TimescaleSelectorComponent)
+    expect(fixture.componentInstance.selected).toBe('Month')
+  })
+
+  it('should emit each timescale value correctly', () => {
+    const fixture = TestBed.createComponent(TimescaleSelectorComponent)
+    const app     = fixture.componentInstance
+    spyOn(app.selectedChange, 'emit')
+
+    const timescales = ['Hour', 'Day', 'Week', 'Month'] as const
+    timescales.forEach((ts, i) => {
+      app.selected = 'Month'  // reset so dedup guard doesn't block
+      app.onSelect(ts)
+      expect(app.selected).toEqual(ts)
+    })
+    // last call is duplicate and should not emit
+    expect(app.selectedChange.emit).toHaveBeenCalledTimes(timescales.length - 1) 
+    expect(app.selectedChange.emit).toHaveBeenCalledWith('Hour')
+    expect(app.selectedChange.emit).toHaveBeenCalledWith('Day')
+    expect(app.selectedChange.emit).toHaveBeenCalledWith('Week')
+    expect(app.selectedChange.emit).not.toHaveBeenCalledWith('Month')
+  })
+
+  it('should have option labels matching their values', () => {
+    const fixture = TestBed.createComponent(TimescaleSelectorComponent)
+    const app     = fixture.componentInstance
+    app.options.forEach(option => {
+      expect(option.label).toBe(option.value)
+    })
+  })
 })
