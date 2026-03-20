@@ -27,10 +27,24 @@ $work-center-left-offset: 31px;
   transition: opacity 100ms ease-in;
   flex: 1;
   min-height: 0;
+  flex-direction: column;
 
   &--hidden {
     opacity: 0;
     transition: opacity 80ms ease-out;
+  }
+}
+
+// Inner wrapper holds the sticky header + scrollable body
+.timeline-body-scroll {
+  display: flex;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -60,6 +74,10 @@ $work-center-left-offset: 31px;
   font-family: $page-font-family;
   font-size: 14px;
   font-weight: 400;
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: #fff;
 
   @media (max-width: 768px)  { font-size: 12px; padding-left: 12px; }
   @media (max-width: 480px)  { font-size: 10px; padding-left: 8px; }
@@ -98,7 +116,7 @@ $work-center-left-offset: 31px;
 .right-column {
   flex: 1;
   overflow-x: auto;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-anchor: none;
   scrollbar-width: none;
 
@@ -114,11 +132,18 @@ $work-center-left-offset: 31px;
   height: $header-height;
   border-bottom: $grid-border;
   background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 4;
 }
 
 .timeline-header-row--week-top {
   display: flex;
   border-bottom: none;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: #fff;
 }
 
 // --- Timeline cells -----------------------------------------------------------
