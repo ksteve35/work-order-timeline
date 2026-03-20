@@ -45,13 +45,6 @@ ng test
 
 ## Known Issues
 
-- A work order's start and end dates are 12 AM on the date, making it impossible to create or edit work orders to a specific hour on a given date
--  `work-order-panel` component
-  - Adjust spacing and selected status color in Status `ng-select` dropdown menu
-  - `Cancel` and `Create` buttons
-    - Need to add a focused color for when navigating the form using tab or tab + shift
-    - `Cancel` button border looks strange when hovering or clicking on the button
-  - Ensure active input field color is accurate (`border: 2px solid rgba(170, 175, 255, 1); border-radius: 5px;`)
 - Smaller/mobile screens need adjustment
 
 ## Future Upgrades
