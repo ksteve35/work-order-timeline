@@ -1,11 +1,10 @@
 import {
-  ChangeDetectorRef, Component, EventEmitter, Injectable, Input, OnChanges,
-  OnDestroy, OnInit, Output, SimpleChanges
+  ChangeDetectorRef, Component, ElementRef, EventEmitter, Injectable, Input, OnChanges,
+  OnInit, OnDestroy, Output, SimpleChanges, ViewChild
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
-import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms'
-import { Subject, takeUntil } from 'rxjs'
-import { NgbDatepickerModule, NgbDateStruct, NgbDateParserFormatter } from '@ng-bootstrap/ng-bootstrap'
+import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms'
+import { NgbDatepickerModule, NgbDateStruct, NgbDateParserFormatter, NgbInputDatepicker } from '@ng-bootstrap/ng-bootstrap'
 import { NgSelectModule } from '@ng-select/ng-select'
 import { WorkCenterDocument, WorkOrderDocument, WorkOrderStatus } from '../../models/documents.model'
 
@@ -25,6 +24,16 @@ class CustomDateFormatter extends NgbDateParserFormatter {
 }
 
 
+
+// Cross-field validator: end date must be after start date
+function endAfterStart(group: AbstractControl): ValidationErrors | null {
+  const s = group.get('startDate')?.value
+  const e = group.get('endDate')?.value
+  if (!s?.year || !s?.month || !s?.day || !e?.year || !e?.month || !e?.day) return null
+  const start = new Date(s.year, s.month - 1, s.day)
+  const end   = new Date(e.year, e.month - 1, e.day)
+  return end < start ? { endBeforeStart: true } : null
+}
 
 export interface PanelWorkOrder {
   docId?:       string
@@ -46,7 +55,7 @@ export interface PanelWorkOrder {
 })
 export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(public cdr: ChangeDetectorRef, private el: ElementRef) {}
   @Input()  mode: 'create' | 'edit' = 'create'
   @Input()  initialData?: Partial<PanelWorkOrder>
   @Input()  workCenters: WorkCenterDocument[] = []
@@ -56,7 +65,6 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
 
   form!: FormGroup
   overlapError = false
-  private destroy$ = new Subject<void>()
 
   statusOptions: { label: string; value: WorkOrderStatus }[] = [
     { label: 'Open',        value: 'open'        },
@@ -90,14 +98,8 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
       status:    new FormControl(this.initialData?.status ?? 'open',  Validators.required),
       startDate: new FormControl(this.toNgbDate(startDate),          Validators.required),
       endDate:   new FormControl(this.toNgbDate(endDate),            Validators.required)
-    })
+    }, { validators: endAfterStart })
 
-    // Overlap is checked via (dateSelect) in the template — fires reliably in-zone
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next()
-    this.destroy$.complete()
   }
 
   private patchForm(): void {
@@ -110,11 +112,33 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
     })
   }
 
+  // Which datepicker is currently open: null | "start" | "end"
+  @ViewChild('startPicker') startPicker!: NgbInputDatepicker
+  @ViewChild('endPicker')   endPicker!:   NgbInputDatepicker
+
+  activePicker: string | null = null
+
+  ngOnDestroy(): void {}
+
+  togglePicker(name: string, picker: NgbInputDatepicker): void {
+    picker.toggle()
+    this.activePicker = picker.isOpen() ? name : null
+    this.cdr.detectChanges()
+  }
+
+  closeAllPickers(): void {
+    if (this.startPicker?.isOpen()) this.startPicker.close()
+    if (this.endPicker?.isOpen())   this.endPicker.close()
+    this.activePicker = null
+  }
+
   checkOverlap(): void {
     const v = this.form.value
     const s = v.startDate, e = v.endDate
     // Guard: only check when both controls hold a fully populated NgbDateStruct
-    if (!s?.year || !s?.month || !s?.day || !e?.year || !e?.month || !e?.day) {
+    // and the date order is valid (end >= start)
+    if (!s?.year || !s?.month || !s?.day || !e?.year || !e?.month || !e?.day ||
+        this.form.hasError('endBeforeStart')) {
       this.overlapError = false
       return
     }
@@ -134,6 +158,7 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
       return
     }
 
+    if (this.form.hasError('endBeforeStart')) return
     this.checkOverlap()
     if (this.overlapError) return
 

@@ -30,7 +30,6 @@ $page-font-family: "Circular-Std", sans-serif;
               0 4.5px 5px -1px rgba(216, 220, 235, 1);
   display: flex;
   flex-direction: column;
-  // overflow: visible so ng-select dropdown can escape the panel bounds
   overflow: visible;
   animation: slideIn 200ms ease-out;
 
@@ -180,8 +179,9 @@ $page-font-family: "Circular-Std", sans-serif;
   box-sizing: border-box;
   cursor: pointer;
 
-  &:focus {
-    border-color: rgba(62, 64, 219, 1);
+  &:focus,
+  &--open {
+    border-color: rgba(170, 175, 255, 1);
   }
 
   &--error {
@@ -256,9 +256,25 @@ $page-font-family: "Circular-Std", sans-serif;
   align-items: center;
 }
 
-:host ::ng-deep .panel-ng-select.ng-select.ng-select-focused .ng-select-container {
-  border-color: rgba(62, 64, 219, 1);
-  box-shadow: none;
+:host ::ng-deep .panel-ng-select.ng-select.ng-select-focused .ng-select-container,
+:host ::ng-deep .panel-ng-select.ng-select.ng-select-opened .ng-select-container {
+  border-color: rgba(170, 175, 255, 1);
+  box-shadow: 0 0 0 1px rgba(216, 220, 235, 1), 0 1.5px 3px -1.5px rgba(200, 207, 233, 1), 0 1px 0.5px -1px rgba(216, 220, 235, 1);
+}
+
+:host ::ng-deep .panel-ng-select.ng-select .ng-arrow-wrapper {
+  position: absolute;
+  top: calc(50% - 2.5px);
+  right: 14px;
+  transform: translateY(-50%);
+  width: auto;
+}
+
+:host ::ng-deep .panel-ng-select.ng-select .ng-arrow-wrapper .ng-arrow,
+:host ::ng-deep .panel-ng-select.ng-select.ng-select-opened .ng-arrow-wrapper .ng-arrow {
+  border-color: rgba(104, 113, 150, 1) transparent transparent;
+  border-style: solid;
+  border-width: 5px 4px 0;
 }
 
 :host ::ng-deep .panel-ng-select .ng-dropdown-panel {
@@ -267,30 +283,54 @@ $page-font-family: "Circular-Std", sans-serif;
   border-radius: 6px;
   box-shadow: 0 0 0 1px rgba(104, 113, 150, 0.1),
               0 4px 12px rgba(200, 207, 233, 0.6);
+  top: 43px;
   z-index: 9999;
   overflow: hidden;
 }
 
 :host ::ng-deep .panel-ng-select .ng-dropdown-panel .ng-dropdown-panel-items {
   background-color: #fff;
+  padding: 12px 0;
 }
 
 :host ::ng-deep .panel-ng-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
   font-family: $page-font-family;
   font-size: 14px;
-  font-weight: 400;
-  color: rgba(3, 9, 41, 1);
-  padding: 8px 12px;
+  font-weight: 500;
+  color: rgba(47, 48, 89, 1);
+  padding: 0 0 0 12px;
+  height: 28px;
+  min-height: 28px;
+  max-height: 28px;
   display: flex;
   align-items: center;
   background-color: #fff;
 
+  &:hover,
   &.ng-option-marked {
-    background-color: rgba(238, 240, 255, 1);
+    background: rgba(238, 240, 255, 1);
   }
 
   &.ng-option-selected {
-    background-color: #fff;
-    font-weight: 500;
+    color: rgba(62, 64, 219, 1);
+  }
+}
+
+// --- ngb-datepicker ----------------------------------------------------------
+
+:host ::ng-deep ngb-datepicker {
+  border: 1px solid rgba(230, 235, 240, 1);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(200, 207, 233, 0.5);
+  font-family: $page-font-family;
+}
+
+:host ::ng-deep .ngb-dp-day .btn-light {
+  font-family: $page-font-family;
+  font-size: 13px;
+  border-radius: 4px;
+
+  &.bg-primary {
+    background-color: rgba(62, 64, 219, 1) !important;
   }
 }
