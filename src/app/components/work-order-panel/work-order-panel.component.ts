@@ -73,6 +73,18 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
     { label: 'Blocked',     value: 'blocked'      }
   ]
 
+  // Datepicker year range: today ± 20 years
+  // NgbDatepicker uses NgbDateStruct for minDate/maxDate rather than JS Date objects.
+  get minDate(): NgbDateStruct {
+    const y = new Date().getFullYear() - 20
+    return { year: y, month: 1, day: 1 }
+  }
+
+  get maxDate(): NgbDateStruct {
+    const y = new Date().getFullYear() + 20
+    return { year: y, month: 12, day: 31 }
+  }
+
   get isEdit(): boolean { return this.mode === 'edit' }
   get title(): string   { return 'Work Order Details' }
   get subtitle(): string { return 'Specify the dates, name and status for this order' }
