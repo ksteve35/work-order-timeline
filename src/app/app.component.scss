@@ -18,6 +18,10 @@ html, body {
   height: 100%;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 1024px) { padding-left: 48px; }
+  @media (max-width: 768px)  { padding-left: 24px; }
+  @media (max-width: 480px)  { padding-left: 12px; }
 }
 
 .naologic-logo-container {
@@ -43,10 +47,15 @@ html, body {
 
 .timeline-header {
   padding-top: 45px;
+
+  @media (max-width: 768px) { padding-top: 24px; }
+  @media (max-width: 480px) { padding-top: 16px; }
 }
 
 .page-title {
   font-size: 24px;
   font-weight: 600;
   color: rgba(3, 9, 41, 1);
+
+  @media (max-width: 480px) { font-size: 20px; }
 }

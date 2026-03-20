@@ -44,6 +44,10 @@ $work-center-left-offset: 31px;
   background: #fff;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: 1024px) { width: 180px; }
+  @media (max-width: 768px)  { width: 130px; }
+  @media (max-width: 480px)  { width: 90px; }
 }
 
 .work-center-header {
@@ -56,6 +60,9 @@ $work-center-left-offset: 31px;
   font-family: $page-font-family;
   font-size: 14px;
   font-weight: 400;
+
+  @media (max-width: 768px)  { font-size: 12px; padding-left: 12px; }
+  @media (max-width: 480px)  { font-size: 10px; padding-left: 8px; }
 }
 
 .work-center-header--double {
@@ -73,6 +80,9 @@ $work-center-left-offset: 31px;
   font-size: 14px;
   font-weight: 400;
   background: #fff;
+
+  @media (max-width: 768px)  { font-size: 12px; padding-left: 12px; }
+  @media (max-width: 480px)  { font-size: 10px; padding-left: 8px; }
 
   &:hover {
     background: rgba(238, 240, 255, 1);
@@ -122,6 +132,9 @@ $work-center-left-offset: 31px;
   font-family: $page-font-family;
   font-size: 14px;
   font-weight: 400;
+
+  @media (max-width: 768px)  { font-size: 11px; }
+  @media (max-width: 480px)  { font-size: 9px; }
 }
 
 .timeline-cell--week-label {
