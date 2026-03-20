@@ -7,8 +7,10 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 To install the project, navigate to its folder in a terminal and run:
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
+
+The `--legacy-peer-deps` is required due to this project being developed using Angular v19 and its dependencies have been updated. Without `--legacy-peer-deps`, the wrong libraries versions would be installed so the terminal will cancel the installation with an error message.
 
 Once all of the packages are installed, you can continue to run a development server, run unit tests, or build the project.
 
@@ -43,7 +45,7 @@ ng test
 ## Libraries Used
 
 - Angular v19.1.0
-  - Required framework for the assessment and needed to use Angular v17+
+  - Required framework for the assessment and needed to meet the Angular v17+ requirement
 - popperjs v2.11.8
   - Required to make ng-bootstrap cooperate, as it is a peer dependency
 - karma v6.4.0
