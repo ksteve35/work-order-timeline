@@ -149,7 +149,7 @@
 <app-work-order-panel
   *ngIf="panelMode !== null"
   [mode]="panelMode!"
-  [initialData]="panelInitial"
+  [initialData]="panelInitialData"
   [workCenters]="workCenters"
   [existingOrders]="workOrders"
   (save)="onPanelSave($event)"
