@@ -45,7 +45,6 @@ ng test
 
 ## Known Issues
 
-- A work order's start and end dates are 12 AM on the date, making it impossible to create or edit work orders to a specific hour on a given date
 - Smaller/mobile screens need adjustment
 
 ## Future Upgrades
