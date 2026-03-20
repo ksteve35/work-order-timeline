@@ -57,3 +57,4 @@ ng test
 
 - Add ability to create a new work center
 - Add tooltip when hovering over work order to display name, status, and full date range
+- Remove columns from timeline far away from where user is currently viewing to improve performance

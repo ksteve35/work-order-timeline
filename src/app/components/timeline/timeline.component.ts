@@ -499,6 +499,16 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     }
   }
 
+  // @upgrade Long work order bar performance: bars are currently rendered at
+  // their full pixel width regardless of how much is actually visible in the
+  // viewport. A work order spanning 2 years in Day view renders a bar ~82,000px
+  // wide, causing significant layout and paint cost. The fix is to clip each
+  // bar's left/width to the visible scroll range before rendering — compute
+  // the intersection of [barStart, barEnd] with [scrollLeft, scrollLeft + clientWidth],
+  // and only render bars that intersect the viewport. Virtual scrolling (e.g.
+  // Angular CDK ScrollingModule) could also be applied to the row axis if the
+  // number of work centers grows large. This optimisation should be prioritised
+  // if users regularly create orders spanning more than ~6 months in Day view.
   getBarStyleObject(order: WorkOrderDocument): { [k: string]: string } {
     const s = this.getColumnIndex(order.data.startDate)
     const e = this.getColumnIndex(order.data.endDate) + 1
@@ -712,7 +722,29 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // Scrolls the timeline so the current period indicator is centered in view.
   // Called by the "Today" button in AppComponent via a template reference (#timeline).
   scrollToToday(): void {
-    this.scrollToDate(new Date(), 'left')
+    const today = new Date()
+
+    // Check if today falls within the currently loaded range. If not —
+    // which happens after scrolling far away and switching timescales —
+    // reinitialize the range around today first so getColumnIndex returns
+    // a valid positive offset before we attempt to scroll.
+    const todayInRange = today >= this.visibleStart && today <= this.visibleEnd
+
+    if (!todayInRange) {
+      // Use the same fade cycle as a timescale switch so the content swap
+      // is smooth and isLoadingMore gates the scroll listener correctly.
+      this.isReady = false
+      this.isLoadingMore = true
+      setTimeout(() => {
+        this.initializeRange(today)
+        this.cdr.detectChanges()
+        this.scrollToDate(today, 'left')
+        this.checkScrollEdges()
+        this.isReady = true
+      }, 80)
+    } else {
+      this.scrollToDate(today, 'left')
+    }
   }
 
   private scrollToDate(date: Date, align: 'left' | 'center'): void {
