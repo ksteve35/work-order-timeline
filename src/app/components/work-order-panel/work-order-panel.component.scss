@@ -70,10 +70,6 @@ $page-font-family: "Circular-Std", sans-serif;
   border-radius: 12px 0 0 0;
   background-color: rgba(255, 255, 255, 1);
   overflow: hidden;
-  
-  @media (max-width: 1024px) { padding-bottom: 16px; }
-  @media (max-width: 768px)  { padding-bottom: 16px; }
-  @media (max-width: 480px)  { padding-bottom: 16px; }
 }
 
 .panel-header-text {
@@ -118,9 +114,9 @@ $page-font-family: "Circular-Std", sans-serif;
 
   &--cancel {
     color: rgba(47, 48, 89, 1);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 1), 0 1px 3px 0 rgba(200, 207, 233, 1);
-    border: 1px solid rgba(255, 255, 255, 1);
     background-color: rgba(255, 255, 255, 1);
+    border: 1px solid rgba(230, 235, 240, 1);
+    box-shadow: 0 1px 3px 0 rgba(200, 207, 233, 1);
 
     &:hover {
       background-color: rgb(246, 247, 251);
@@ -136,8 +132,8 @@ $page-font-family: "Circular-Std", sans-serif;
   &--submit {
     color: #fff;
     background-color: rgba(86, 89, 255, 1);
-    border: 1px solid rgba(86, 89, 255, 1);
-    box-shadow: 0 0 0 1px rgba(86, 89, 255, 1) , 0 1px 3px 0 rgba(200, 207, 233, 1);
+    border: none;
+    box-shadow: 0 0 0 1px rgba(86, 89, 255, 1), 0 1px 3px 0 rgba(200, 207, 233, 1);
 
     &:hover {
       background-color: rgb(63, 66, 211);
@@ -205,10 +201,6 @@ $page-font-family: "Circular-Std", sans-serif;
   &::placeholder {
     color: rgba(164, 170, 192, 1);
   }
-}
-
-.panel-date-wrapper {
-  position: relative;
 }
 
 .panel-error {

@@ -174,7 +174,6 @@ $page-font-family: "Circular-Std", sans-serif;
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  background: #fff;
 
   &:hover,
   &.ng-option-marked {
@@ -182,7 +181,9 @@ $page-font-family: "Circular-Std", sans-serif;
   }
 
   &.ng-option-selected {
+    font-weight: 500;
     color: rgba(62, 64, 219, 1);
+    background: #fff;
   }
 }
 

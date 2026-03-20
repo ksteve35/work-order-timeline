@@ -1,11 +1,14 @@
 import {
-  AfterViewInit, ChangeDetectorRef, Component, EventEmitter,
-  ElementRef, Input, NgZone, OnChanges, OnInit,
+  AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter,
+  Input, NgZone, OnChanges, OnInit,
   Output, SimpleChanges, ViewChild
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { WorkCenterDocument, WorkOrderDocument, WorkOrderStatus } from '../../models/documents.model'
 import { WorkOrderPanelComponent, PanelWorkOrder } from '../work-order-panel/work-order-panel.component'
+import { WorkOrderBarComponent } from '../work-order-bar/work-order-bar.component'
+import { startOfDay, addDays, daysBetween, formatDateString } from '../../utils/timeline-date.utils'
+import { STATUS_BG_COLORS, STATUS_BORDER_COLORS } from '../../constants/work-order-status.constants'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -60,52 +63,13 @@ const WINDOW_CONFIG: Record<Timescale, WindowConfig> = {
 }
 
 // ---------------------------------------------------------------------------
-// Status styling maps
-// ---------------------------------------------------------------------------
-
-const STATUS_BG_COLORS: Record<WorkOrderStatus, string> = {
-  'open':        '#F2FEFF',
-  'in-progress': '#EDEEFF',
-  'complete':    '#F8FFF3',
-  'blocked':     '#FFFCF1',
-}
-
-const STATUS_BORDER_COLORS: Record<WorkOrderStatus, string> = {
-  'open':        '#CEFBFF',
-  'in-progress': '#DEE0FF',
-  'complete':    '#D1FAB3',
-  'blocked':     '#FFF5CF',
-}
-
-const STATUS_TEXT_COLORS: Record<WorkOrderStatus, string> = {
-  'open':        'rgba(0,176,191,1)',
-  'in-progress': 'rgba(62,64,219,1)',
-  'complete':    'rgba(8,162,104,1)',
-  'blocked':     'rgba(177,54,0,1)',
-}
-
-const STATUS_BADGE_COLORS: Record<WorkOrderStatus, string> = {
-  'open':        '#E4FDFF',
-  'in-progress': '#D6D8FF',
-  'complete':    '#E1FFCC',
-  'blocked':     '#FCEEB5',
-}
-
-const STATUS_LABELS: Record<WorkOrderStatus, string> = {
-  'open':        'Open',
-  'in-progress': 'In progress',
-  'complete':    'Complete',
-  'blocked':     'Blocked',
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 @Component({
   selector: 'app-timeline',
   standalone: true,
-  imports: [CommonModule, WorkOrderPanelComponent],
+  imports: [CommonModule, WorkOrderPanelComponent, WorkOrderBarComponent],
   templateUrl: './timeline.component.html',
   styleUrls: ['./timeline.component.scss']
 })
@@ -380,7 +344,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
    *  first render. */
   initializeRange(startDate: Date): void {
     const config   = WINDOW_CONFIG[this._activeTimescale]
-    const dayStart = this.startOfDay(startDate)
+    const dayStart = startOfDay(startDate)
     const bufferPx = this.daysToPixels(config.bufferDays)
     const keepPx   = bufferPx * 3
     const keepCols = Math.ceil(keepPx / this.columnWidth)
@@ -389,11 +353,11 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
       this.visibleStart = new Date(dayStart.getFullYear(), dayStart.getMonth() - keepCols, 1)
       this.visibleEnd   = new Date(dayStart.getFullYear(), dayStart.getMonth() + Math.round(config.initialDays / 30), 0)
     } else if (this._activeTimescale === 'Hour') {
-      this.visibleStart = this.addDays(dayStart, -Math.ceil(keepCols / 24))
-      this.visibleEnd   = this.addDays(dayStart, config.initialDays)
+      this.visibleStart = addDays(dayStart, -Math.ceil(keepCols / 24))
+      this.visibleEnd   = addDays(dayStart, config.initialDays)
     } else {
-      this.visibleStart = this.addDays(dayStart, -keepCols)
-      this.visibleEnd   = this.addDays(dayStart, config.initialDays)
+      this.visibleStart = addDays(dayStart, -keepCols)
+      this.visibleEnd   = addDays(dayStart, config.initialDays)
     }
 
     this.refreshColumnCache()
@@ -538,7 +502,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
           1
         )
       } else {
-        this.visibleStart = this.addDays(this.visibleStart, -config.loadDays)
+        this.visibleStart = addDays(this.visibleStart, -config.loadDays)
       }
     }
   }
@@ -563,7 +527,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
           0
         )
       } else {
-        this.visibleEnd = this.addDays(this.visibleEnd, config.loadDays)
+        this.visibleEnd = addDays(this.visibleEnd, config.loadDays)
       }
     }
   }
@@ -589,9 +553,9 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     if (this._activeTimescale === 'Month') {
       this.visibleEnd = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth() - excessCols, 0)
     } else if (this._activeTimescale === 'Hour') {
-      this.visibleEnd = this.addDays(this.visibleEnd, -Math.floor(excessCols / 24))
+      this.visibleEnd = addDays(this.visibleEnd, -Math.floor(excessCols / 24))
     } else {
-      this.visibleEnd = this.addDays(this.visibleEnd, -excessCols)
+      this.visibleEnd = addDays(this.visibleEnd, -excessCols)
     }
   }
 
@@ -615,9 +579,9 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
         1
       )
     } else if (this._activeTimescale === 'Hour') {
-      this.visibleStart = this.addDays(this.visibleStart, Math.floor(colsToTrim / 24))
+      this.visibleStart = addDays(this.visibleStart, Math.floor(colsToTrim / 24))
     } else {
-      this.visibleStart = this.addDays(this.visibleStart, colsToTrim)
+      this.visibleStart = addDays(this.visibleStart, colsToTrim)
     }
 
     return this.columnsBetweenDates(visibleStartBefore, this.visibleStart)
@@ -638,9 +602,9 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
       return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth())
     }
     if (this._activeTimescale === 'Hour') {
-      return this.daysBetween(from, to) * 24
+      return daysBetween(from, to) * 24
     }
-    return this.daysBetween(from, to)
+    return daysBetween(from, to)
   }
 
   /** Total number of columns in the currently loaded window. Used inside
@@ -653,9 +617,9 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
            + 1
     }
     if (this._activeTimescale === 'Hour') {
-      return this.daysBetween(this.visibleStart, this.visibleEnd) * 24 + 24
+      return daysBetween(this.visibleStart, this.visibleEnd) * 24 + 24
     }
-    return this.daysBetween(this.visibleStart, this.visibleEnd) + 1
+    return daysBetween(this.visibleStart, this.visibleEnd) + 1
   }
 
   // -------------------------------------------------------------------------
@@ -677,8 +641,8 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
 
   private buildDayColumns(): Date[] {
     const days    : Date[] = []
-    const current = this.startOfDay(this.visibleStart)
-    const end     = this.startOfDay(this.visibleEnd)
+    const current = startOfDay(this.visibleStart)
+    const end     = startOfDay(this.visibleEnd)
     while (current <= end) {
       days.push(new Date(current))
       current.setDate(current.getDate() + 1)
@@ -846,11 +810,11 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
 
     switch (this._activeTimescale) {
       case 'Hour':
-        return this.daysBetween(this.visibleStart, date) * 24
+        return daysBetween(this.visibleStart, date) * 24
 
       case 'Day':
       case 'Week':
-        return this.daysBetween(this.visibleStart, date)
+        return daysBetween(this.visibleStart, date)
 
       case 'Month': {
         const startYear  = this.visibleStart.getFullYear()
@@ -886,7 +850,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
    *  current period column. Used to position the current-period indicator. */
   getCurrentPeriodOffset(): number {
     const now    = new Date()
-    const today  = this.formatDateString(now)
+    const today  = formatDateString(now)
     const dayPx  = this.getColumnIndex(today) * this.columnWidth
     const hourPx = this._activeTimescale === 'Hour' ? now.getHours() * this.columnWidth : 0
     return dayPx + hourPx + this.columnWidth / 2
@@ -973,8 +937,8 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
 
     this.panelInitialData = {
       workCenterId,
-      startDate: this.formatDateString(startDate),
-      endDate:   this.formatDateString(endDate),
+      startDate: formatDateString(startDate),
+      endDate:   formatDateString(endDate),
     }
     this.panelMode  = 'create'
     this.hoverGhost = null
@@ -1083,18 +1047,8 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // Status styling helpers
   // -------------------------------------------------------------------------
 
-  getStatusLabel(status: string):       string { return STATUS_LABELS[status as WorkOrderStatus]        ?? status }
   getStatusBgColor(status: string):     string { return STATUS_BG_COLORS[status as WorkOrderStatus]     ?? '#F2FEFF' }
-  getStatusTextColor(status: string):   string { return STATUS_TEXT_COLORS[status as WorkOrderStatus]   ?? 'rgba(0,176,191,1)' }
   getStatusBorderColor(status: string): string { return STATUS_BORDER_COLORS[status as WorkOrderStatus] ?? '#CEFBFF' }
-  getStatusBadgeColor(status: string):  string { return STATUS_BADGE_COLORS[status as WorkOrderStatus]  ?? '#E4FDFF' }
-
-  getStatusBadgeStyle(status: string): { [key: string]: string } {
-    return {
-      'background-color': this.getStatusBadgeColor(status),
-      'color':            this.getStatusTextColor(status),
-    }
-  }
 
   // -------------------------------------------------------------------------
   // Grid background
@@ -1130,27 +1084,6 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // Date utilities
   // -------------------------------------------------------------------------
 
-  /** Returns a new Date set to midnight on the same calendar day as `date`. */
-  private startOfDay(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate())
-  }
-
-  /** Returns a new Date that is `numberOfDays` calendar days from `date`,
-   *  normalised to midnight. Pass a negative value to go backwards. */
-  private addDays(date: Date, numberOfDays: number): Date {
-    const result = this.startOfDay(date)
-    result.setDate(result.getDate() + numberOfDays)
-    return result
-  }
-
-  /** Returns the whole number of calendar days between two dates. Uses UTC
-   *  timestamps to avoid DST-related off-by-one errors. */
-  private daysBetween(from: Date, to: Date): number {
-    const fromUtc = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate())
-    const toUtc   = Date.UTC(to.getFullYear(),   to.getMonth(),   to.getDate())
-    return Math.floor((toUtc - fromUtc) / 86_400_000)
-  }
-
   /** Converts a `bufferDays` or `loadDays` value to pixels for the active
    *  timescale. See `WindowConfig` for why Month view uses a /30 divisor. */
   private daysToPixels(days: number): number {
@@ -1174,7 +1107,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
       }
       case 'Day':
       case 'Week':
-        return this.addDays(this.visibleStart, columnIndex)
+        return addDays(this.visibleStart, columnIndex)
 
       case 'Month': {
         const safeIndex = Math.min(columnIndex, 1200)
@@ -1192,7 +1125,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
    *  lands on the actual hour rather than midnight. */
   private scrollToDate(date: Date, alignment: ScrollAlignment): void {
     const scrollContainer = this.rightColumn.nativeElement
-    const dateStr         = this.formatDateString(date)
+    const dateStr         = formatDateString(date)
     let   targetPx        = this.getColumnIndex(dateStr) * this.columnWidth
 
     if (this._activeTimescale === 'Hour') {
@@ -1204,12 +1137,4 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
       : Math.max(0, targetPx)
   }
 
-  /** Formats a Date as a YYYY-MM-DD string, matching the storage format used
-   *  in `WorkOrderDocument.data.startDate` and `.endDate`. */
-  private formatDateString(date: Date): string {
-    const year  = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day   = String(date.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-  }
 }
