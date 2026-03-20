@@ -3,7 +3,7 @@ import {
   OnDestroy, OnInit, Output, SimpleChanges
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
-import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms'
+import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms'
 import { Subject, takeUntil } from 'rxjs'
 import { NgbDatepickerModule, NgbDateStruct, NgbDateParserFormatter } from '@ng-bootstrap/ng-bootstrap'
 import { NgSelectModule } from '@ng-select/ng-select'
@@ -25,6 +25,16 @@ class CustomDateFormatter extends NgbDateParserFormatter {
 }
 
 
+
+// Cross-field validator: end date must be after start date
+function endAfterStart(group: AbstractControl): ValidationErrors | null {
+  const s = group.get('startDate')?.value
+  const e = group.get('endDate')?.value
+  if (!s?.year || !s?.month || !s?.day || !e?.year || !e?.month || !e?.day) return null
+  const start = new Date(s.year, s.month - 1, s.day)
+  const end   = new Date(e.year, e.month - 1, e.day)
+  return end < start ? { endBeforeStart: true } : null
+}
 
 export interface PanelWorkOrder {
   docId?:       string
@@ -90,7 +100,7 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
       status:    new FormControl(this.initialData?.status ?? 'open',  Validators.required),
       startDate: new FormControl(this.toNgbDate(startDate),          Validators.required),
       endDate:   new FormControl(this.toNgbDate(endDate),            Validators.required)
-    })
+    }, { validators: endAfterStart })
 
     // Overlap is checked via (dateSelect) in the template — fires reliably in-zone
   }
@@ -114,7 +124,9 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
     const v = this.form.value
     const s = v.startDate, e = v.endDate
     // Guard: only check when both controls hold a fully populated NgbDateStruct
-    if (!s?.year || !s?.month || !s?.day || !e?.year || !e?.month || !e?.day) {
+    // and the date order is valid (end >= start)
+    if (!s?.year || !s?.month || !s?.day || !e?.year || !e?.month || !e?.day ||
+        this.form.hasError('endBeforeStart')) {
       this.overlapError = false
       return
     }
@@ -134,6 +146,7 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
       return
     }
 
+    if (this.form.hasError('endBeforeStart')) return
     this.checkOverlap()
     if (this.overlapError) return
 

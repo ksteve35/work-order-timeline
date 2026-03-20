@@ -99,6 +99,11 @@
       </span>
     </div>
 
+    <!-- Date order error -->
+    <div class="panel-overlap-error" *ngIf="form.hasError('endBeforeStart') && (form.get('startDate')?.touched || form.get('endDate')?.touched)">
+      End date must be on or after the start date.
+    </div>
+
     <!-- Overlap error -->
     <div class="panel-overlap-error" *ngIf="overlapError">
       This order overlaps with an existing order on the same work center.
