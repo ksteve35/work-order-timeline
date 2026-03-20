@@ -34,8 +34,6 @@ ng test
 
 - Angular v19.1.0
   - Required framework for the assessment and needed to use Angular v17+
-- rxjs v7.8.0
-  - Needed to utilize `Subject` class to detect when an `ngOnDestroy` function finished firing
 - popperjs v2.11.8
   - Required to make ng-bootstrap cooperate, as it is a peer dependency
 - karma v6.4.0

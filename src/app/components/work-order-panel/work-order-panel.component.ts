@@ -1,10 +1,9 @@
 import {
   ChangeDetectorRef, Component, EventEmitter, Injectable, Input, OnChanges,
-  OnDestroy, OnInit, Output, SimpleChanges
+  OnInit, Output, SimpleChanges
 } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, AbstractControl, ValidationErrors } from '@angular/forms'
-import { Subject, takeUntil } from 'rxjs'
 import { NgbDatepickerModule, NgbDateStruct, NgbDateParserFormatter } from '@ng-bootstrap/ng-bootstrap'
 import { NgSelectModule } from '@ng-select/ng-select'
 import { WorkCenterDocument, WorkOrderDocument, WorkOrderStatus } from '../../models/documents.model'
@@ -54,7 +53,7 @@ export interface PanelWorkOrder {
   styleUrls: ['./work-order-panel.component.scss'],
 
 })
-export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
+export class WorkOrderPanelComponent implements OnInit, OnChanges {
 
   constructor(private cdr: ChangeDetectorRef) {}
   @Input()  mode: 'create' | 'edit' = 'create'
@@ -66,7 +65,6 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
 
   form!: FormGroup
   overlapError = false
-  private destroy$ = new Subject<void>()
 
   statusOptions: { label: string; value: WorkOrderStatus }[] = [
     { label: 'Open',        value: 'open'        },
@@ -102,12 +100,6 @@ export class WorkOrderPanelComponent implements OnInit, OnChanges, OnDestroy {
       endDate:   new FormControl(this.toNgbDate(endDate),            Validators.required)
     }, { validators: endAfterStart })
 
-    // Overlap is checked via (dateSelect) in the template — fires reliably in-zone
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next()
-    this.destroy$.complete()
   }
 
   private patchForm(): void {
