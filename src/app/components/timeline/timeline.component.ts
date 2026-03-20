@@ -15,10 +15,23 @@ interface DayGroup   { label: string; hours: Date[] }
 interface WindowConfig { initialDays: number; loadDays: number; bufferDays: number }
 
 const WINDOW_CONFIG: Record<Timescale, WindowConfig> = {
-  Hour:  { initialDays: 7,   loadDays: 3,   bufferDays: 5   },
-  Day:   { initialDays: 120, loadDays: 30,  bufferDays: 50  },
-  Week:  { initialDays: 168, loadDays: 56,  bufferDays: 90  },
-  Month: { initialDays: 730, loadDays: 180, bufferDays: 270 }
+  // initialDays: columns loaded on first render
+  // loadDays:    columns added per extend trigger — larger = fewer triggers, more memory
+  // bufferDays:  how close to the edge before triggering an extend — larger = earlier trigger
+  //
+  // NOTE: daysToPixels() converts bufferDays to pixels differently per timescale:
+  //   Hour:  days * 24 * columnWidth
+  //   Month: (days / 30) * columnWidth   ← each "day" = 1/30 of a column
+  //   Day/Week: days * columnWidth
+  //
+  // For Month view, multiply desired column counts by 30 to get the day values
+  // that will produce the right pixel thresholds after the /30 conversion.
+  // e.g. 20 month columns buffer = 20 * 30 = 600 bufferDays
+  Hour:  { initialDays: 14,   loadDays: 7,    bufferDays: 10   },
+  Day:   { initialDays: 60,   loadDays: 30,   bufferDays: 20   },
+  Week:  { initialDays: 84,   loadDays: 42,   bufferDays: 28   },
+  // Month: buffer = 20 cols (~2280px), load = 36 cols per extend, initial = 120 cols (~10 years)
+  Month: { initialDays: 3600, loadDays: 1080, bufferDays: 600  },
 }
 
 @Component({
@@ -32,7 +45,18 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
 
   @Input() selectedTimescale: Timescale = 'Month'
   @Input() workCenters: WorkCenterDocument[] = []
-  @Input() workOrders:  WorkOrderDocument[]  = []
+
+  // Memoized map of wcId → orders. Rebuilt only when workOrders is set,
+  // not on every CD cycle. This prevents getOrdersForWorkCenter() from
+  // iterating the full array on every scroll/mousemove event.
+  private _ordersByWc: Map<string, WorkOrderDocument[]> = new Map()
+
+  private _workOrders: WorkOrderDocument[] = []
+  @Input() set workOrders(orders: WorkOrderDocument[]) {
+    this._workOrders = orders
+    this._rebuildOrdersMap()
+  }
+  get workOrders(): WorkOrderDocument[] { return this._workOrders }
 
   // Emitted whenever workOrders mutates (create, edit, delete).
   // The parent (AppComponent) listens to persist the new array to localStorage.
@@ -212,14 +236,24 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // ---------------------------------------------------------------------------
 
   initializeRange(startDate: Date): void {
-    const cfg   = WINDOW_CONFIG[this._activeTimescale]
-    const start = this.startOfDay(startDate)
+    const cfg    = WINDOW_CONFIG[this._activeTimescale]
+    const start  = this.startOfDay(startDate)
+    const bufPx  = this.daysToPixels(cfg.bufferDays)
+    const keepPx = bufPx * 3
+
+    // Push visibleStart back so startDate lands at keepPx from the left edge.
+    // This ensures checkScrollEdges on load doesn't immediately trigger an extend
+    // because today is too close to the left boundary.
+    const keepCols = Math.ceil(keepPx / this.columnWidth)
 
     if (this._activeTimescale === 'Month') {
-      this.visibleStart = new Date(start.getFullYear(), start.getMonth(), 1)
+      this.visibleStart = new Date(start.getFullYear(), start.getMonth() - keepCols, 1)
       this.visibleEnd   = new Date(start.getFullYear(), start.getMonth() + Math.round(cfg.initialDays / 30), 0)
+    } else if (this._activeTimescale === 'Hour') {
+      this.visibleStart = this.addDays(start, -Math.ceil(keepCols / 24))
+      this.visibleEnd   = this.addDays(start, cfg.initialDays)
     } else {
-      this.visibleStart = start
+      this.visibleStart = this.addDays(start, -keepCols)
       this.visibleEnd   = this.addDays(start, cfg.initialDays)
     }
 
@@ -245,6 +279,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     this.totalColumns    = this._activeTimescale === 'Week'
                            ? this._cachedDayColumns.length
                            : cols.length
+    this._updateGridBackground()
   }
 
   // ---------------------------------------------------------------------------
@@ -300,12 +335,15 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
 
     const anchorDate         = this.getDateAtPixel(el.scrollLeft)
     const originalAnchorCols = Math.floor(el.scrollLeft / this.columnWidth)
+    let   rightTrimmedCols   = 0  // exact column count removed from left during right-extend
 
     const extendingLeft  = colsFromStart(anchorDate) * this.columnWidth < bufPx
     const extendingRight = el.scrollLeft + el.clientWidth > totalCols() * this.columnWidth - bufPx
 
     if (extendingLeft) {
-      while (colsFromStart(anchorDate) * this.columnWidth < bufPx) {
+      // Extend until the anchor is keepPx from the left edge (not just bufPx).
+      // Stopping at bufPx leaves only a tiny margin before the next trigger.
+      while (colsFromStart(anchorDate) * this.columnWidth < keepPx) {
         if (this._activeTimescale === 'Month') {
           const m = Math.round(cfg.loadDays / 30)
           this.visibleStart = new Date(this.visibleStart.getFullYear(), this.visibleStart.getMonth() - m, 1)
@@ -328,7 +366,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     }
 
     if (extendingRight) {
-      while (el.scrollLeft + el.clientWidth > totalCols() * this.columnWidth - bufPx) {
+      while (el.scrollLeft + el.clientWidth > totalCols() * this.columnWidth - keepPx) {
         if (this._activeTimescale === 'Month') {
           const m = Math.round(cfg.loadDays / 30)
           this.visibleEnd = new Date(this.visibleEnd.getFullYear(), this.visibleEnd.getMonth() + m + 1, 0)
@@ -336,17 +374,56 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
           this.visibleEnd = this.addDays(this.visibleEnd, cfg.loadDays)
         }
       }
-      // Do NOT trim left during right extend — see extended comment in DECISIONS
+      // Trim the distant past (left side) when extending right.
+      // Capture rightTrimmedCols before mutating visibleStart so we can
+      // apply an exact scrollDelta correction afterward — without it,
+      // scrollLeft stays the same while the column origin shifts right,
+      // teleporting the user leftward and re-triggering the extend loop.
+      // Capture visibleStart before trimming so we can compute the exact
+      // column count removed — pixel-based estimates have rounding errors
+      // especially in Month view where months snap to the 1st of the month.
+      const visibleStartBefore = new Date(this.visibleStart)
+      const leftExcess = el.scrollLeft - keepPx
+      if (leftExcess > 0) {
+        const colsToTrim = Math.floor(leftExcess / this.columnWidth)
+        if (this._activeTimescale === 'Month') {
+          this.visibleStart = new Date(
+            this.visibleStart.getFullYear(),
+            this.visibleStart.getMonth() + colsToTrim,
+            1
+          )
+        } else if (this._activeTimescale === 'Hour') {
+          this.visibleStart = this.addDays(this.visibleStart, Math.floor(colsToTrim / 24))
+        } else {
+          this.visibleStart = this.addDays(this.visibleStart, colsToTrim)
+        }
+        // Compute exact cols trimmed from the difference in colsFromStart,
+        // not from leftExcess — this accounts for month-boundary snapping.
+        const newColsFromStart = ((): number => {
+          if (this._activeTimescale === 'Month')
+            return (this.visibleStart.getFullYear() - visibleStartBefore.getFullYear()) * 12
+                   + (this.visibleStart.getMonth() - visibleStartBefore.getMonth())
+          if (this._activeTimescale === 'Hour')
+            return this.daysBetween(visibleStartBefore, this.visibleStart) * 24
+          return this.daysBetween(visibleStartBefore, this.visibleStart)
+        })()
+        rightTrimmedCols = newColsFromStart
+      }
     }
 
+    // scrollDelta for left extend: visibleStart moved left, column indices
+    // increased — add the difference so scrollLeft points at the same date.
+    // scrollDelta for right extend: visibleStart moved right, column indices
+    // decreased — subtract the exact trimmed column pixels to compensate.
     const scrollDelta = extendingLeft
       ? (colsFromStart(anchorDate) - originalAnchorCols) * this.columnWidth
-      : 0
+      : -(rightTrimmedCols * this.columnWidth)
+
+    if (scrollDelta !== 0) el.scrollLeft += scrollDelta
 
     this.refreshColumnCache()
 
     requestAnimationFrame(() => {
-      if (scrollDelta !== 0) el.scrollLeft += scrollDelta
       this.cdr.detectChanges()
       this.isLoadingMore = false
     })
@@ -548,8 +625,17 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     return this.workOrders.find(o => o.docId === docId)!
   }
 
+  private _rebuildOrdersMap(): void {
+    this._ordersByWc = new Map()
+    for (const o of this._workOrders) {
+      const arr = this._ordersByWc.get(o.data.workCenterId) ?? []
+      arr.push(o)
+      this._ordersByWc.set(o.data.workCenterId, arr)
+    }
+  }
+
   getOrdersForWorkCenter(wcId: string): WorkOrderDocument[] {
-    return this.workOrders.filter(o => o.data.workCenterId === wcId)
+    return this._ordersByWc.get(wcId) ?? []
   }
 
   getStatusLabel(s: string): string {
@@ -564,14 +650,15 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
     return { 'background-color': this.getStatusBadgeColor(s), color: this.getStatusTextColor(s) }
   }
 
-  get gridBackgroundStyle(): { [k: string]: string } {
-    const w = this.columnWidth
+  // Cached — only recomputed in refreshColumnCache when columnWidth changes.
+  // A getter would recompute this string on every CD cycle.
+  gridBackgroundStyle: { [k: string]: string } = {}
+
+  private _updateGridBackground(): void {
+    const w      = this.columnWidth
     const border = 'rgba(230, 235, 240, 1)'
     const bg     = 'rgba(247, 249, 252, 1)'
-    // The row background color is baked into the gradient so it covers the
-    // full grid height (including empty space below the last row) and doesn't
-    // conflict with the repeating-linear-gradient vertical border lines.
-    return {
+    this.gridBackgroundStyle = {
       '--timeline-grid-bg': `repeating-linear-gradient(to right, ${bg} 0px, ${bg} ${w - 1}px, ${border} ${w - 1}px, ${border} ${w}px)`
     }
   }
@@ -581,6 +668,7 @@ export class TimelineComponent implements OnInit, AfterViewInit, OnChanges {
   // ---------------------------------------------------------------------------
 
   hoverGhost: { left: number; wcId: string } | null = null
+  private _lastMouseCol = -1  // last column index processed by mousemove — skip if unchanged
 
   onRowMousemove(event: MouseEvent, wcId: string): void {
     const el         = this.rightColumn.nativeElement
